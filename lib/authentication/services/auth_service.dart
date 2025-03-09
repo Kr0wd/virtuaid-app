@@ -18,7 +18,7 @@ class AuthService {
   }) async {
     try {
       final response = await _dio.post(
-        '/auth/login/',
+        'auth/app/login/',
         data: {'username': username, 'password': password},
       );
 
@@ -46,7 +46,7 @@ class AuthService {
   }) async {
     try {
       final response = await _dio.post(
-        'auth/register/',
+        'auth/app/register/',
         data: {
           'username': username,
           'email': email,
@@ -118,7 +118,7 @@ class AuthService {
       final refreshToken = await _tokenService.getRefreshToken();
       if (accessToken != null) {
         await _dio.post(
-          '/auth/logout/',
+          '/auth/app/logout/',
           data: {'refresh': refreshToken},
           options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
         );
@@ -141,7 +141,7 @@ class AuthService {
       }
 
       final response = await _dio.post(
-        '/auth/token/refresh/',
+        'auth/app/token/refresh/',
         data: {'refresh': refreshToken},
       );
 
@@ -191,7 +191,7 @@ class AuthService {
   Future<UserModel> _fetchUserInfo(String token) async {
     try {
       final response = await _dio.get(
-        '/auth/user/',
+        '/auth/app/user/',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
