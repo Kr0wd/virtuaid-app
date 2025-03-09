@@ -1,3 +1,11 @@
+# Environment configuration
+.env.json
+.env.development.json
+.env.production.json
+.env.staging.json
+.env.testing.json
+.env.local.json
+
 # Miscellaneous
 *.class
 *.log
