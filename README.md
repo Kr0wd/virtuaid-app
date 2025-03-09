@@ -1,30 +1,99 @@
-# Flutter Starter Template
+# VirtuAid
 
-A modern Flutter starter template with authentication flow, routing, state
-management, and networking already set up.
+Mobile client for Virtual Aid services.
 
-## Features
+## Getting Started
 
-- 🔐 **Complete Authentication Flow**: Login, signup, and authentication state
-  management
-- 📱 **Splash Screen**: Initial loading screen with automatic redirection
-- 🧩 **BLoC Pattern**: Organized state management using Flutter Bloc
-- 🧭 **Routing**: Declarative routing using GoRouter with authentication guards
-- 🌐 **API Integration**: HTTP client setup with Dio for API requests
-- 🔒 **Secure Storage**: Secure data persistence for tokens and sensitive
-  information
-- ❄️ **Code Generation**: Boilerplate reduction using Freezed and JSON
-  Serializable
+### Prerequisites
 
-## Project Structure
+- Flutter SDK (latest stable version recommended)
+- Android Studio / Xcode (depending on target platform)
+- Git
 
-This project is a starting point for a Flutter application.
+### Setup Instructions
 
-A few resources to get you started if this is your first Flutter project:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/sahil-shefeek/virtuaid-app.git
+   cd virtuaid-app
+   ```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+2. Install dependencies:
+   ```bash
+   flutter pub get
+   ```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Environment Configuration
+
+This project uses environment files to manage configuration for different
+environments. Only `example.env.json` is provided in the repository.
+
+### Setting Up Environment Files
+
+1. Rename the `example.env.json` file based on your environment needs:
+   ```bash
+   # Choose one or more of the following based on your needs
+   cp example.env.json env.json               # Default environment
+   cp example.env.json .env.development.json  # Development environment
+   cp example.env.json .env.production.json   # Production environment
+   cp example.env.json .env.staging.json      # Staging environment
+   cp example.env.json .env.testing.json      # Testing environment
+   cp example.env.json .env.local.json        # Local development
+   ```
+2. Modify each file with the appropriate values for that environment.
+
+### Environment File Structure
+
+The environment files use the following structure:
+
+```json
+{
+  "API_BASE_URL": "http://localhost:8000/api/"
+}
+```
+
+Configuration parameters:
+
+| Parameter      | Description                |
+| -------------- | -------------------------- |
+| `API_BASE_URL` | Base URL for API endpoints |
+
+## Running the Application
+
+To run the app with different environment configurations:
+
+```bash
+# Using the default environment
+flutter run --dart-define-from-file=env.json
+
+# Using the development environment
+flutter run --dart-define-from-file=.env.development.json
+
+# Using the production environment
+flutter run --dart-define-from-file=.env.production.json
+
+# Using other environments
+flutter run --dart-define-from-file=.env.staging.json
+flutter run --dart-define-from-file=.env.testing.json
+flutter run --dart-define-from-file=.env.local.json
+```
+
+## Building for Release
+
+To build release versions with specific environment configurations:
+
+```bash
+# Build Android APK with production environment
+flutter build apk --dart-define-from-file=.env.production.json
+
+# Build iOS with production environment
+flutter build ios --dart-define-from-file=.env.production.json
+```
+
+## Troubleshooting
+
+- If you encounter build issues, try running `flutter clean` followed by
+  `flutter pub get`
+- Ensure your environment files are correctly formatted and contain the required
+  parameters
+- Verify that you have the latest Flutter SDK installed (`flutter upgrade`)

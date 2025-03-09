@@ -1,8 +1,11 @@
 class ApiConstants {
   ApiConstants._();
 
-  // Base URL for API calls
-  static const String baseUrl = 'http://localhost:8000/api/';
+  // Base URL for API calls - loaded from environment variables
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8000/api/',
+  );
 
   // Common headers
   static const Map<String, dynamic> headers = {
