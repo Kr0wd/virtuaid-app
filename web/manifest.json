@@ -1,11 +1,11 @@
 {
-    "name": "flutter_starter",
-    "short_name": "flutter_starter",
+    "name": "VirtualAid",
+    "short_name": "VirtualAid",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#hexcode",
     "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "description": "A virtual assistant application for healthcare",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
