@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flutter Starter</string>
+    <!-- Replace with your actual Web client ID -->
+    <string name="server_client_id">198528304799-npr45rnud6vhudfs64k3qlqq598jttfr.apps.googleusercontent.com</string>
+</resources>
