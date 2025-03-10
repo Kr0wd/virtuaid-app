@@ -157,7 +157,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ? null
                                 : () {
                                   // Navigate to signup page
-                                  context.pushNamed(AppRouteName.signup);
+                                  context.goNamed(AppRouteName.signup);
                                 },
                         child: const Text('Don\'t have an account? Sign up'),
                       ),

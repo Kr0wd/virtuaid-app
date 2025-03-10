@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_starter/authentication/bloc/authentication_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/google_sign_in_button.dart';
+import 'package:flutter_starter/routes.dart'; // Add this import
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -45,7 +46,7 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
+      appBar: AppBar(title: const Text('Signup')),
       body: BlocConsumer<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
           if (state is AuthenticationFailure) {
@@ -197,7 +198,10 @@ class _SignupPageState extends State<SignupPage> {
                       GoogleSignInButton(isLoading: _isLoading),
                       const SizedBox(height: 16),
                       TextButton(
-                        onPressed: _isLoading ? null : () => context.pop(),
+                        onPressed:
+                            _isLoading
+                                ? null
+                                : () => context.goNamed(AppRouteName.login),
                         child: const Text('Already have an account? Log in'),
                       ),
                     ],
