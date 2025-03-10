@@ -4,7 +4,7 @@ class AppRouter {
   static const String homePath = '/home';
   static const String signupPath = '/signup';
   static const String profilePath = '/profile';
-  static const String settingsPath = '/settings'; // Add settings path
+  static const String settingsPath = '/settings';
 }
 
 class AppRouteName {
