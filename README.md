@@ -90,6 +90,25 @@ flutter build apk --dart-define-from-file=.env.production.json
 flutter build ios --dart-define-from-file=.env.production.json
 ```
 
+## Automated Builds with GitHub Actions
+
+This project is configured for automated builds using GitHub Actions. When code
+is pushed to the main branch, a new APK is built and published as a GitHub
+release.
+
+### Setting up GitHub Secrets for Automated Builds
+
+To properly build the app with environment variables, you need to set up the
+following GitHub Secrets:
+
+1. Go to your GitHub repository → Settings → Secrets and variables → Actions
+2. Add the following secret:
+   - `API_BASE_URL`: Your API base URL (e.g., "http://api.example.com/")
+   - Add any other environment variables your app needs
+
+The GitHub Action workflow will automatically create an `.env.json` file using
+these secrets before building the app.
+
 ## Troubleshooting
 
 - If you encounter build issues, try running `flutter clean` followed by
