@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_starter/dashboard/data/repositories/associates_repository_impl.dart';
+import 'package:flutter_starter/dashboard/domain/repositories/associates_repository.dart';
 
 import '../../core/network/dio_service.dart';
 import '../bloc/authentication_bloc.dart';
@@ -21,7 +23,15 @@ class AuthDependencies extends StatelessWidget {
     final authService = AuthService(dioService.dioInstance, tokenService);
 
     return MultiRepositoryProvider(
-      providers: [RepositoryProvider<DioService>.value(value: dioService)],
+      providers: [
+        // Provide DioService
+        RepositoryProvider<DioService>.value(value: dioService),
+
+        // Provide AssociatesRepository
+        RepositoryProvider<AssociatesRepository>(
+          create: (context) => AssociatesRepositoryImpl(dioService),
+        ),
+      ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthenticationBloc>(
