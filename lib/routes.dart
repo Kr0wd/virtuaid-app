@@ -5,6 +5,14 @@ class AppRouter {
   static const String signupPath = '/signup';
   static const String profilePath = '/profile';
   static const String settingsPath = '/settings'; // Add settings path
+
+  // New paths
+  static const String residentsPath = '/residents';
+  static const String newResidentPath = '/residents/new';
+  static const String appointmentsPath = '/appointments';
+  static const String sessionsPath = '/sessions';
+  static const String feedbacksPath = '/feedbacks';
+  static const String newFeedbackPath = '/feedbacks/new';
 }
 
 class AppRouteName {
@@ -14,4 +22,12 @@ class AppRouteName {
   static const String signup = 'signup';
   static const String profile = 'profile';
   static const String settings = 'settings';
+
+  // New route names
+  static const String residents = 'residents';
+  static const String newResident = 'newResident';
+  static const String appointments = 'appointments';
+  static const String sessions = 'sessions';
+  static const String feedbacks = 'feedbacks';
+  static const String newFeedback = 'newFeedback';
 }
