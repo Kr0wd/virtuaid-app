@@ -12,6 +12,14 @@ import 'package:flutter_starter/settings/presentation/pages/settings_page.dart';
 import 'package:flutter_starter/routes.dart';
 import 'package:go_router/go_router.dart';
 
+// Import the new pages
+import 'package:flutter_starter/residents/presentation/pages/residents_page.dart';
+import 'package:flutter_starter/residents/presentation/pages/new_resident_page.dart';
+import 'package:flutter_starter/appointments/presentation/pages/appointments_page.dart';
+import 'package:flutter_starter/sessions/presentation/pages/sessions_page.dart';
+import 'package:flutter_starter/feedbacks/presentation/pages/feedbacks_page.dart';
+import 'package:flutter_starter/feedbacks/presentation/pages/new_feedback_page.dart';
+
 void main() {
   runApp(const AuthDependencies(child: MyApp()));
 }
@@ -56,6 +64,37 @@ class MyApp extends StatelessWidget {
           path: AppRouter.settingsPath,
           name: AppRouteName.settings,
           builder: (context, state) => const SettingsPage(),
+        ),
+        // New routes
+        GoRoute(
+          path: AppRouter.residentsPath,
+          name: AppRouteName.residents,
+          builder: (context, state) => const ResidentsPage(),
+        ),
+        GoRoute(
+          path: AppRouter.newResidentPath,
+          name: AppRouteName.newResident,
+          builder: (context, state) => const NewResidentPage(),
+        ),
+        GoRoute(
+          path: AppRouter.appointmentsPath,
+          name: AppRouteName.appointments,
+          builder: (context, state) => const AppointmentsPage(),
+        ),
+        GoRoute(
+          path: AppRouter.sessionsPath,
+          name: AppRouteName.sessions,
+          builder: (context, state) => const SessionsPage(),
+        ),
+        GoRoute(
+          path: AppRouter.feedbacksPath,
+          name: AppRouteName.feedbacks,
+          builder: (context, state) => const FeedbacksPage(),
+        ),
+        GoRoute(
+          path: AppRouter.newFeedbackPath,
+          name: AppRouteName.newFeedback,
+          builder: (context, state) => const NewFeedbackPage(),
         ),
       ],
       refreshListenable: StreamToListenable([authBloc.stream]),
