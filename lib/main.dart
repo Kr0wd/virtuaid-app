@@ -3,14 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_starter/authentication/bloc/authentication_bloc.dart';
 import 'package:flutter_starter/authentication/presentation/pages/login_page.dart';
 import 'package:flutter_starter/authentication/presentation/pages/signup_page.dart';
-import 'package:flutter_starter/authentication/presentation/pages/splash_page.dart'; // Add this import
+import 'package:flutter_starter/authentication/presentation/pages/splash_page.dart';
 import 'package:flutter_starter/authentication/services/auth_dependencies.dart';
 import 'package:flutter_starter/authentication/utils/stream_to_listenable.dart';
 import 'package:flutter_starter/dashboard/presentation/pages/dashboard_page.dart';
-import 'package:flutter_starter/profile/presentation/pages/profile_page.dart'; // Add this import
-import 'package:flutter_starter/settings/presentation/pages/settings_page.dart'; // Add this import
+import 'package:flutter_starter/profile/presentation/pages/profile_page.dart';
+import 'package:flutter_starter/settings/presentation/pages/settings_page.dart';
 import 'package:flutter_starter/routes.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_starter/core/network/dio_service.dart';
 
 // Import the new pages
 import 'package:flutter_starter/residents/presentation/pages/residents_page.dart';
@@ -21,7 +22,8 @@ import 'package:flutter_starter/feedbacks/presentation/pages/feedbacks_page.dart
 import 'package:flutter_starter/feedbacks/presentation/pages/new_feedback_page.dart';
 
 void main() {
-  runApp(const AuthDependencies(child: MyApp()));
+  final dioService = DioService();
+  runApp(AuthDependencies(dioService: dioService, child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -29,7 +31,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get the AuthenticationBloc from the context instead of creating it
     final authBloc = context.read<AuthenticationBloc>();
 
     final GoRouter router = GoRouter(
@@ -102,7 +103,6 @@ class MyApp extends StatelessWidget {
         final isAuthenticated = authBloc.state is Authenticated;
         final isUnauthenticated = authBloc.state is Unauthenticated;
 
-        // Add this condition to redirect from splash to home when authenticated
         if (isAuthenticated && state.matchedLocation == AppRouter.splashPath) {
           return AppRouter.homePath;
         }

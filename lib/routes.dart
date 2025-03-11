@@ -4,9 +4,7 @@ class AppRouter {
   static const String homePath = '/home';
   static const String signupPath = '/signup';
   static const String profilePath = '/profile';
-  static const String settingsPath = '/settings'; // Add settings path
-
-  // New paths
+  static const String settingsPath = '/settings';
   static const String residentsPath = '/residents';
   static const String newResidentPath = '/residents/new';
   static const String appointmentsPath = '/appointments';
