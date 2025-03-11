@@ -20,8 +20,6 @@ class AppRouteName {
   static const String signup = 'signup';
   static const String profile = 'profile';
   static const String settings = 'settings';
-
-  // New route names
   static const String residents = 'residents';
   static const String newResident = 'newResident';
   static const String appointments = 'appointments';

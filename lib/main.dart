@@ -12,8 +12,6 @@ import 'package:flutter_starter/settings/presentation/pages/settings_page.dart';
 import 'package:flutter_starter/routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_starter/core/network/dio_service.dart';
-
-// Import the new pages
 import 'package:flutter_starter/residents/presentation/pages/residents_page.dart';
 import 'package:flutter_starter/residents/presentation/pages/new_resident_page.dart';
 import 'package:flutter_starter/appointments/presentation/pages/appointments_page.dart';
