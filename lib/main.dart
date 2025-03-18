@@ -18,6 +18,7 @@ import 'package:flutter_starter/appointments/presentation/pages/appointments_pag
 import 'package:flutter_starter/sessions/presentation/pages/sessions_page.dart';
 import 'package:flutter_starter/feedbacks/presentation/pages/feedbacks_page.dart';
 import 'package:flutter_starter/feedbacks/presentation/pages/new_feedback_page.dart';
+import 'package:flutter_starter/core/theme/app_theme.dart';
 
 void main() {
   final dioService = DioService();
@@ -124,10 +125,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'GoRouter and Bloc Authentication Example',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
       routerDelegate: router.routerDelegate,
       routeInformationParser: router.routeInformationParser,
       routeInformationProvider: router.routeInformationProvider,
