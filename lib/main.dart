@@ -6,13 +6,12 @@ import 'package:flutter_starter/authentication/presentation/pages/signup_page.da
 import 'package:flutter_starter/authentication/presentation/pages/splash_page.dart';
 import 'package:flutter_starter/authentication/services/auth_dependencies.dart';
 import 'package:flutter_starter/authentication/utils/stream_to_listenable.dart';
-import 'package:flutter_starter/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:flutter_starter/core/presentation/pages/main_shell_page.dart';
 import 'package:flutter_starter/profile/presentation/pages/profile_page.dart';
 import 'package:flutter_starter/settings/presentation/pages/settings_page.dart';
 import 'package:flutter_starter/routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_starter/core/network/dio_service.dart';
-import 'package:flutter_starter/residents/presentation/pages/residents_page.dart';
 import 'package:flutter_starter/residents/presentation/pages/new_resident_page.dart';
 import 'package:flutter_starter/appointments/presentation/pages/appointments_page.dart';
 import 'package:flutter_starter/sessions/presentation/pages/sessions_page.dart';
@@ -48,7 +47,7 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: AppRouter.homePath,
           name: AppRouteName.home,
-          builder: (context, state) => const DashboardPage(),
+          builder: (context, state) => const MainShellPage(initialIndex: 0),
         ),
         GoRoute(
           path: AppRouter.signupPath,
@@ -65,17 +64,18 @@ class MyApp extends StatelessWidget {
           name: AppRouteName.settings,
           builder: (context, state) => const SettingsPage(),
         ),
-        // New routes
+        // Residents page now uses the shell with index 1
         GoRoute(
           path: AppRouter.residentsPath,
           name: AppRouteName.residents,
-          builder: (context, state) => const ResidentsPage(),
+          builder: (context, state) => const MainShellPage(initialIndex: 1),
         ),
         GoRoute(
           path: AppRouter.newResidentPath,
           name: AppRouteName.newResident,
           builder: (context, state) => const NewResidentPage(),
         ),
+        // Quick access pages - these will have back buttons by default with go_router
         GoRoute(
           path: AppRouter.appointmentsPath,
           name: AppRouteName.appointments,
@@ -123,7 +123,7 @@ class MyApp extends StatelessWidget {
     );
 
     return MaterialApp.router(
-      title: 'GoRouter and Bloc Authentication Example',
+      title: 'VirtuAid',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerDelegate: router.routerDelegate,
