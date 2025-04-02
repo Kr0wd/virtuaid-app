@@ -113,12 +113,37 @@ class _NewResidentFormState extends State<NewResidentForm> {
               key: _formKey,
               child: ListView(
                 children: [
+                  // Header section
+                  const Center(
+                    child: Icon(
+                      Icons.person_add_rounded,
+                      size: 80,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Center(
+                    child: Text(
+                      'Add Resident Information',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Name field
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: 'Full Name',
+                      prefixIcon: const Icon(Icons.person),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -128,18 +153,26 @@ class _NewResidentFormState extends State<NewResidentForm> {
                     },
                   ),
                   const SizedBox(height: 20),
+
+                  // Date of birth field
                   InkWell(
                     onTap: () => _selectDate(context),
                     child: InputDecorator(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Date of Birth',
-                        prefixIcon: Icon(Icons.calendar_today),
-                        border: OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.calendar_today),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[50],
                       ),
                       child: Text(_formattedDate),
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 40),
+
+                  // Submit button
                   switch (state) {
                     NewResidentLoading() => const Center(
                       child: CircularProgressIndicator(),
@@ -148,8 +181,17 @@ class _NewResidentFormState extends State<NewResidentForm> {
                       onPressed: _submitForm,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      child: const Text('Add Resident'),
+                      child: const Text(
+                        'Add Resident',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   },
                 ],

@@ -136,6 +136,82 @@ class DashboardContent extends StatelessWidget {
               color: Colors.green,
             ),
             const SizedBox(height: 24),
+
+            // Residents section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Residents',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                TextButton.icon(
+                  onPressed: () => context.push(AppRouter.residentsPath),
+                  icon: const Icon(Icons.visibility),
+                  label: const Text('View All'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Residents list - show only a preview (limited number)
+            data.results.isEmpty
+                ? const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        'No residents found. Add your first resident.',
+                      ),
+                    ),
+                  ),
+                )
+                : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: data.results.length > 3 ? 3 : data.results.length,
+                  itemBuilder: (context, index) {
+                    final resident = data.results[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.blue.shade100,
+                          child: const Icon(Icons.person, color: Colors.blue),
+                        ),
+                        title: Text(
+                          resident.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text('DOB: ${resident.dateOfBirth}'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          // Navigate to resident details page - to be implemented
+                        },
+                      ),
+                    );
+                  },
+                ),
+
+            // Show view all button if there are more than 3 residents
+            if (data.results.length > 3)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: TextButton(
+                  onPressed: () => context.push(AppRouter.residentsPath),
+                  child: const Text('View all residents'),
+                ),
+              ),
+            const SizedBox(height: 24),
+
             const Text(
               'Quick Access',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

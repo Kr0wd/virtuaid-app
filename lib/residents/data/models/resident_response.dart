@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'resident_model.dart';
 
 part 'resident_response.freezed.dart';
 part 'resident_response.g.dart';
@@ -9,7 +10,7 @@ sealed class ResidentResponse with _$ResidentResponse {
     required int count,
     String? next,
     String? previous,
-    required List<dynamic> results,
+    required List<ResidentModel> results,
   }) = _ResidentResponse;
 
   factory ResidentResponse.fromJson(Map<String, dynamic> json) =>

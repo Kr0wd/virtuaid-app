@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ResidentResponse {
 
- int get count; String? get next; String? get previous; List<dynamic> get results;
+ int get count; String? get next; String? get previous; List<ResidentModel> get results;
 /// Create a copy of ResidentResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -49,7 +49,7 @@ abstract mixin class $ResidentResponseCopyWith<$Res>  {
   factory $ResidentResponseCopyWith(ResidentResponse value, $Res Function(ResidentResponse) _then) = _$ResidentResponseCopyWithImpl;
 @useResult
 $Res call({
- int count, String? next, String? previous, List<dynamic> results
+ int count, String? next, String? previous, List<ResidentModel> results
 });
 
 
@@ -72,7 +72,7 @@ count: null == count ? _self.count : count // ignore: cast_nullable_to_non_nulla
 as int,next: freezed == next ? _self.next : next // ignore: cast_nullable_to_non_nullable
 as String?,previous: freezed == previous ? _self.previous : previous // ignore: cast_nullable_to_non_nullable
 as String?,results: null == results ? _self.results : results // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,
+as List<ResidentModel>,
   ));
 }
 
@@ -83,14 +83,14 @@ as List<dynamic>,
 @JsonSerializable()
 
 class _ResidentResponse implements ResidentResponse {
-  const _ResidentResponse({required this.count, this.next, this.previous, required final  List<dynamic> results}): _results = results;
+  const _ResidentResponse({required this.count, this.next, this.previous, required final  List<ResidentModel> results}): _results = results;
   factory _ResidentResponse.fromJson(Map<String, dynamic> json) => _$ResidentResponseFromJson(json);
 
 @override final  int count;
 @override final  String? next;
 @override final  String? previous;
- final  List<dynamic> _results;
-@override List<dynamic> get results {
+ final  List<ResidentModel> _results;
+@override List<ResidentModel> get results {
   if (_results is EqualUnmodifiableListView) return _results;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_results);
@@ -130,7 +130,7 @@ abstract mixin class _$ResidentResponseCopyWith<$Res> implements $ResidentRespon
   factory _$ResidentResponseCopyWith(_ResidentResponse value, $Res Function(_ResidentResponse) _then) = __$ResidentResponseCopyWithImpl;
 @override @useResult
 $Res call({
- int count, String? next, String? previous, List<dynamic> results
+ int count, String? next, String? previous, List<ResidentModel> results
 });
 
 
@@ -153,7 +153,7 @@ count: null == count ? _self.count : count // ignore: cast_nullable_to_non_nulla
 as int,next: freezed == next ? _self.next : next // ignore: cast_nullable_to_non_nullable
 as String?,previous: freezed == previous ? _self.previous : previous // ignore: cast_nullable_to_non_nullable
 as String?,results: null == results ? _self._results : results // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,
+as List<ResidentModel>,
   ));
 }
 

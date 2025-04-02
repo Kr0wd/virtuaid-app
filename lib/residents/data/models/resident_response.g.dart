@@ -11,7 +11,10 @@ _ResidentResponse _$ResidentResponseFromJson(Map<String, dynamic> json) =>
       count: (json['count'] as num).toInt(),
       next: json['next'] as String?,
       previous: json['previous'] as String?,
-      results: json['results'] as List<dynamic>,
+      results:
+          (json['results'] as List<dynamic>)
+              .map((e) => ResidentModel.fromJson(e as Map<String, dynamic>))
+              .toList(),
     );
 
 Map<String, dynamic> _$ResidentResponseToJson(_ResidentResponse instance) =>
