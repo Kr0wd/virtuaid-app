@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_starter/core/network/dio_service.dart';
-import 'package:flutter_starter/dashboard/data/models/associates_response.dart';
-import 'package:flutter_starter/dashboard/data/repositories/associates_repository_impl.dart';
-import 'package:flutter_starter/dashboard/presentation/bloc/associates_bloc.dart';
-import 'package:flutter_starter/dashboard/presentation/bloc/associates_event.dart';
-import 'package:flutter_starter/dashboard/presentation/bloc/associates_state.dart';
+import 'package:flutter_starter/residents/data/models/resident_response.dart';
+import 'package:flutter_starter/residents/data/repositories/resident_repository_impl.dart';
+import 'package:flutter_starter/dashboard/presentation/bloc/resident_bloc.dart';
+import 'package:flutter_starter/dashboard/presentation/bloc/resident_event.dart';
+import 'package:flutter_starter/dashboard/presentation/bloc/resident_state.dart';
 import 'package:flutter_starter/routes.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,12 +16,11 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dioService = RepositoryProvider.of<DioService>(context);
-
     return BlocProvider(
       create:
           (context) =>
-              AssociatesBloc(AssociatesRepositoryImpl(dioService))
-                ..add(const FetchAssociates()),
+              ResidentBloc(ResidentRepositoryImpl(dioService))
+                ..add(const ResidentEvent.fetchResidents()),
       child: const DashboardContent(),
     );
   }
@@ -33,42 +32,34 @@ class DashboardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Create the bloc provider if it doesn't exist in the ancestor widgets
-    // Fix: Replace nullOk parameter with safer approach
-    AssociatesBloc? bloc;
+    ResidentBloc? bloc;
     try {
-      bloc = context.read<AssociatesBloc>();
+      bloc = context.read<ResidentBloc>();
     } catch (_) {
       // Bloc not found in widget tree
     }
-
     if (bloc == null) {
       final dioService = RepositoryProvider.of<DioService>(context);
       return BlocProvider(
         create:
             (context) =>
-                AssociatesBloc(AssociatesRepositoryImpl(dioService))
-                  ..add(const FetchAssociates()),
+                ResidentBloc(ResidentRepositoryImpl(dioService))
+                  ..add(const ResidentEvent.fetchResidents()),
         child: _buildContent(context),
       );
     }
-
     return _buildContent(context);
   }
 
   Widget _buildContent(BuildContext context) {
-    return BlocBuilder<AssociatesBloc, AssociatesState>(
+    return BlocBuilder<ResidentBloc, ResidentState>(
       builder: (context, state) {
-        if (state is AssociatesInitial) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is AssociatesLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is AssociatesLoaded) {
-          return _buildDashboardContent(context, state.data);
-        } else if (state is AssociatesError) {
-          return _buildErrorContent(context, state.message);
-        } else {
-          return const Center(child: Text('Unknown state'));
-        }
+        return switch (state) {
+          ResidentInitial() => const Center(child: CircularProgressIndicator()),
+          ResidentLoading() => const Center(child: CircularProgressIndicator()),
+          ResidentLoaded(:final data) => _buildDashboardContent(context, data),
+          ResidentError(:final message) => _buildErrorContent(context, message),
+        };
       },
     );
   }
@@ -76,7 +67,9 @@ class DashboardContent extends StatelessWidget {
   Widget _buildErrorContent(BuildContext context, String message) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<AssociatesBloc>().add(const RefreshAssociates());
+        context.read<ResidentBloc>().add(
+          const ResidentEvent.refreshResidents(),
+        );
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -97,7 +90,9 @@ class DashboardContent extends StatelessWidget {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<AssociatesBloc>().add(const FetchAssociates());
+                    context.read<ResidentBloc>().add(
+                      const ResidentEvent.fetchResidents(),
+                    );
                   },
                   child: const Text('Retry'),
                 ),
@@ -109,10 +104,12 @@ class DashboardContent extends StatelessWidget {
     );
   }
 
-  Widget _buildDashboardContent(BuildContext context, AssociatesResponse data) {
+  Widget _buildDashboardContent(BuildContext context, ResidentResponse data) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<AssociatesBloc>().add(const RefreshAssociates());
+        context.read<ResidentBloc>().add(
+          const ResidentEvent.refreshResidents(),
+        );
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
