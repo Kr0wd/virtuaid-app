@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_starter/residents/data/repositories/resident_repository_impl.dart';
 import 'package:flutter_starter/residents/data/repositories/resident_repository.dart';
+import 'package:flutter_starter/sessions/data/repositories/session_repository.dart';
+import 'package:flutter_starter/sessions/data/repositories/session_repository_impl.dart';
 
 import '../../core/network/dio_service.dart';
 import '../bloc/authentication_bloc.dart';
@@ -30,6 +32,11 @@ class AuthDependencies extends StatelessWidget {
         // Provide ResidentRepository
         RepositoryProvider<ResidentRepository>(
           create: (context) => ResidentRepositoryImpl(dioService),
+        ),
+
+        // Provide SessionRepository
+        RepositoryProvider<SessionRepository>(
+          create: (context) => SessionRepositoryImpl(dioService),
         ),
       ],
       child: MultiBlocProvider(
