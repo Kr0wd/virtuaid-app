@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../core/utils/string_extensions.dart';
+import '../../../residents/data/models/resident_model.dart';
+import '../../../residents/data/repositories/resident_repository.dart';
 import '../bloc/sessions_bloc.dart';
 import 'session_details_page.dart';
 
@@ -15,13 +17,166 @@ class SessionsPage extends StatelessWidget {
           (context) => SessionsBloc(context.read())..add(const FetchSessions()),
       child: Scaffold(
         appBar: AppBar(title: const Text('Therapy Sessions')),
-        body: _SessionsList(),
+        body: const _SessionsContent(),
       ),
     );
   }
 }
 
+class _SessionsContent extends StatefulWidget {
+  const _SessionsContent();
+
+  @override
+  State<_SessionsContent> createState() => _SessionsContentState();
+}
+
+class _SessionsContentState extends State<_SessionsContent> {
+  ResidentModel? selectedResident;
+  List<ResidentModel> residents = [];
+  bool isLoadingResidents = true;
+  String searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadResidents();
+  }
+
+  Future<void> _loadResidents() async {
+    setState(() {
+      isLoadingResidents = true;
+    });
+
+    try {
+      final residentRepository = context.read<ResidentRepository>();
+      final residentResponse = await residentRepository.getResidents();
+
+      setState(() {
+        residents = residentResponse.results;
+        isLoadingResidents = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoadingResidents = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load residents: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  List<ResidentModel> get filteredResidents {
+    if (searchQuery.isEmpty) return residents;
+    return residents
+        .where(
+          (resident) =>
+              resident.name.toLowerCase().contains(searchQuery.toLowerCase()),
+        )
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _buildResidentSelector(),
+        Expanded(child: _SessionsList(selectedResident: selectedResident)),
+      ],
+    );
+  }
+
+  Widget _buildResidentSelector() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'Search residents...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            onChanged: (value) {
+              setState(() {
+                searchQuery = value;
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          isLoadingResidents
+              ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+              : SizedBox(height: 50, child: _buildResidentList()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResidentList() {
+    if (filteredResidents.isEmpty) {
+      return const Center(child: Text('No residents found'));
+    }
+
+    return ListView(
+      scrollDirection: Axis.horizontal,
+      children: [
+        // Add "All Residents" option
+        ChoiceChip(
+          label: const Text('All Residents'),
+          selected: selectedResident == null,
+          onSelected: (_) {
+            setState(() {
+              selectedResident = null;
+            });
+          },
+        ),
+        const SizedBox(width: 8),
+        ...filteredResidents.map((resident) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(resident.name),
+              selected:
+                  selectedResident?.id == resident.id && resident.id != null,
+              onSelected: (_) {
+                setState(() {
+                  selectedResident = resident;
+                });
+              },
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+}
+
 class _SessionsList extends StatelessWidget {
+  final ResidentModel? selectedResident;
+
+  const _SessionsList({this.selectedResident});
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SessionsBloc, SessionsState>(
@@ -56,10 +211,35 @@ class _SessionsList extends StatelessWidget {
           return const Center(child: Text('Something went wrong'));
         }
 
-        final sessions = state.sessionResponse.results;
+        var sessions = state.sessionResponse.results;
+
+        // Filter sessions by selected resident if any
+        if (selectedResident != null && selectedResident!.id != null) {
+          sessions =
+              sessions
+                  .where(
+                    (session) =>
+                        session.residentDetails.id == selectedResident!.id,
+                  )
+                  .toList();
+        }
 
         if (sessions.isEmpty) {
-          return const Center(child: Text('No sessions found'));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.event_busy, size: 64, color: Colors.grey[400]),
+                const SizedBox(height: 16),
+                Text(
+                  selectedResident == null
+                      ? 'No sessions found'
+                      : 'No sessions found for ${selectedResident!.name}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+          );
         }
 
         return RefreshIndicator(

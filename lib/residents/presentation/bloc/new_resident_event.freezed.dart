@@ -142,4 +142,72 @@ as String,
 
 }
 
+/// @nodoc
+
+
+class NewResidentSubmitted implements NewResidentEvent {
+  const NewResidentSubmitted({required this.name, required this.dateOfBirth});
+  
+
+@override final  String name;
+@override final  String dateOfBirth;
+
+/// Create a copy of NewResidentEvent
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NewResidentSubmittedCopyWith<NewResidentSubmitted> get copyWith => _$NewResidentSubmittedCopyWithImpl<NewResidentSubmitted>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NewResidentSubmitted&&(identical(other.name, name) || other.name == name)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,name,dateOfBirth);
+
+@override
+String toString() {
+  return 'NewResidentEvent.submitted(name: $name, dateOfBirth: $dateOfBirth)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NewResidentSubmittedCopyWith<$Res> implements $NewResidentEventCopyWith<$Res> {
+  factory $NewResidentSubmittedCopyWith(NewResidentSubmitted value, $Res Function(NewResidentSubmitted) _then) = _$NewResidentSubmittedCopyWithImpl;
+@override @useResult
+$Res call({
+ String name, String dateOfBirth
+});
+
+
+
+
+}
+/// @nodoc
+class _$NewResidentSubmittedCopyWithImpl<$Res>
+    implements $NewResidentSubmittedCopyWith<$Res> {
+  _$NewResidentSubmittedCopyWithImpl(this._self, this._then);
+
+  final NewResidentSubmitted _self;
+  final $Res Function(NewResidentSubmitted) _then;
+
+/// Create a copy of NewResidentEvent
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? dateOfBirth = null,}) {
+  return _then(NewResidentSubmitted(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,dateOfBirth: null == dateOfBirth ? _self.dateOfBirth : dateOfBirth // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
 // dart format on

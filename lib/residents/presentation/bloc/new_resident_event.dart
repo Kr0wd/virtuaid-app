@@ -8,4 +8,9 @@ sealed class NewResidentEvent with _$NewResidentEvent {
     required String name,
     required String dateOfBirth,
   }) = AddResident;
+
+  const factory NewResidentEvent.submitted({
+    required String name,
+    required String dateOfBirth,
+  }) = NewResidentSubmitted;
 }
