@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+
 import '../../../core/utils/string_extensions.dart';
+import '../../data/models/emotion_analysis_model.dart';
 import '../../data/models/session_model.dart';
 import '../../data/repositories/session_repository.dart';
 import '../bloc/sessions_bloc.dart';
+import '../pages/emotion_analysis_page.dart';
 import '../pages/video_analysis_page.dart';
 
 class SessionDetailsPage extends StatefulWidget {
@@ -48,7 +51,9 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
   }
 
   Widget _buildContent(BuildContext context) {
-    context.read<SessionsBloc>();
+    // Load the emotion analyses when the page is built
+    context.read<SessionsBloc>()
+      ..add(FetchSessionEmotionAnalyses(sessionId: widget.session.id));
 
     return Scaffold(
       appBar: AppBar(
@@ -176,12 +181,277 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
                 const SizedBox(height: 16),
                 _buildNotesSection(context, currentSession),
                 const SizedBox(height: 16),
+                _buildEmotionAnalysesSection(context),
+                const SizedBox(height: 16),
                 _buildAnalyzeEmotionButton(context, currentSession),
               ],
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildEmotionAnalysesSection(BuildContext context) {
+    return Card(
+      elevation: 2,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Emotion Detection Analyses',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+            const Divider(height: 24),
+            BlocBuilder<SessionsBloc, SessionsState>(
+              builder: (context, state) {
+                if (state is EmotionAnalysesLoading) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                } else if (state is EmotionAnalysesError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Error loading emotion analyses: ${state.message}',
+                            style: const TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              context.read<SessionsBloc>().add(
+                                FetchSessionEmotionAnalyses(
+                                  sessionId: widget.session.id,
+                                ),
+                              );
+                            },
+                            child: const Text('Try Again'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                } else if (state is EmotionAnalysesLoaded) {
+                  final analyses = state.emotionAnalyses;
+                  if (analyses.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20.0),
+                      child: Center(
+                        child: Text(
+                          'No emotion analyses found for this session.',
+                          style: TextStyle(fontStyle: FontStyle.italic),
+                        ),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: analyses.length,
+                    itemBuilder: (context, index) {
+                      final analysis = analyses[index];
+                      return _buildEmotionAnalysisItem(context, analysis);
+                    },
+                  );
+                }
+
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20.0),
+                    child: Text(
+                      'No emotion analyses data available',
+                      style: TextStyle(fontStyle: FontStyle.italic),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmotionAnalysisItem(
+    BuildContext context,
+    EmotionAnalysisModel analysis,
+  ) {
+    // Format the date for better display
+    final uploadedDate = DateFormat(
+      'MMM d, yyyy h:mm a',
+    ).format(DateTime.parse(analysis.uploadedAt));
+    final fileName = analysis.file.split('/').last;
+
+    return ExpansionTile(
+      title: Text(
+        analysis.title,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              _buildStatusIndicator(analysis.status),
+              const SizedBox(width: 8),
+              Text('Uploaded: $uploadedDate'),
+            ],
+          ),
+        ],
+      ),
+      leading: Icon(Icons.video_file, color: _getStatusColor(analysis.status)),
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (analysis.description.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Text('Description: ${analysis.description}'),
+                ),
+              Text('File: $fileName'),
+              Text('Size: ${_formatFileSize(analysis.fileSize)}'),
+              const SizedBox(height: 16),
+              if (analysis.status == 'completed')
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildAnalysisButton(
+                      context,
+                      'Frame Analysis',
+                      Icons.photo_library,
+                      analysis,
+                    ),
+                    _buildAnalysisButton(
+                      context,
+                      'Timeline',
+                      Icons.timeline,
+                      analysis,
+                    ),
+                    _buildAnalysisButton(
+                      context,
+                      'Summary',
+                      Icons.summarize,
+                      analysis,
+                    ),
+                  ],
+                )
+              else
+                Center(
+                  child: Text(
+                    'Analysis ${analysis.status}',
+                    style: TextStyle(
+                      color: _getStatusColor(analysis.status),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusIndicator(String status) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: _getStatusColor(status),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        status.capitalize(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'processing':
+        return Colors.orange;
+      case 'failed':
+        return Colors.red;
+      case 'pending':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(2)} KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  }
+
+  Widget _buildAnalysisButton(
+    BuildContext context,
+    String label,
+    IconData icon,
+    EmotionAnalysisModel analysis,
+  ) {
+    return ElevatedButton.icon(
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      ),
+      onPressed: () {
+        // Navigate to appropriate analysis page instead of opening URL
+        if (label == 'Frame Analysis') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FramesAnalysisPage(analysis: analysis),
+            ),
+          );
+        } else if (label == 'Timeline') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TimelineAnalysisPage(analysis: analysis),
+            ),
+          );
+        } else if (label == 'Summary') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SummaryAnalysisPage(analysis: analysis),
+            ),
+          );
+        }
+      },
     );
   }
 
