@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:intl/intl.dart';
 import '../../../core/network/dio_service.dart';
 import '../../data/models/emotion_analysis_model.dart';
-import 'frame_analysis_page.dart';
 
 abstract class EmotionAnalysisPage extends StatelessWidget {
   final EmotionAnalysisModel analysis;
@@ -753,19 +751,6 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
         ),
       ),
     );
-  }
-
-  IconData _getEmotionIcon(String emotion) {
-    switch (emotion.toLowerCase()) {
-      case 'happy':
-        return Icons.sentiment_satisfied_alt;
-      case 'sad':
-        return Icons.sentiment_dissatisfied;
-      case 'angry':
-        return Icons.mood_bad;
-      default:
-        return Icons.face;
-    }
   }
 
   String _getDominantEmotion(dynamic dataPoint) {
