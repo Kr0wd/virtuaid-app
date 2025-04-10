@@ -298,77 +298,152 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
     ).format(DateTime.parse(analysis.uploadedAt));
     final fileName = analysis.file.split('/').last;
 
-    return ExpansionTile(
-      title: Text(
-        analysis.title,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6.0),
+      child: ExpansionTile(
+        title: Text(
+          analysis.title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            _buildStatusIndicator(analysis.status),
+            const SizedBox(height: 4),
+            Text('Uploaded: $uploadedDate', overflow: TextOverflow.ellipsis),
+          ],
+        ),
+        leading: Icon(
+          Icons.video_file,
+          color: _getStatusColor(analysis.status),
+        ),
         children: [
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              _buildStatusIndicator(analysis.status),
-              const SizedBox(width: 8),
-              Text('Uploaded: $uploadedDate'),
-            ],
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (analysis.description.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: Text(
+                      'Description: ${analysis.description}',
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                Text('File: $fileName', overflow: TextOverflow.ellipsis),
+                Text('Size: ${_formatFileSize(analysis.fileSize)}'),
+                const SizedBox(height: 16),
+                if (analysis.status == 'completed')
+                  _buildAnalysisButtonsLayout(context, analysis)
+                else
+                  Center(
+                    child: Text(
+                      'Analysis ${analysis.status}',
+                      style: TextStyle(
+                        color: _getStatusColor(analysis.status),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
-      leading: Icon(Icons.video_file, color: _getStatusColor(analysis.status)),
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (analysis.description.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Text('Description: ${analysis.description}'),
-                ),
-              Text('File: $fileName'),
-              Text('Size: ${_formatFileSize(analysis.fileSize)}'),
-              const SizedBox(height: 16),
-              if (analysis.status == 'completed')
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildAnalysisButton(
-                      context,
-                      'Frame Analysis',
-                      Icons.photo_library,
-                      analysis,
-                    ),
-                    _buildAnalysisButton(
-                      context,
-                      'Timeline',
-                      Icons.timeline,
-                      analysis,
-                    ),
-                    _buildAnalysisButton(
-                      context,
-                      'Summary',
-                      Icons.summarize,
-                      analysis,
-                    ),
-                  ],
-                )
-              else
-                Center(
-                  child: Text(
-                    'Analysis ${analysis.status}',
-                    style: TextStyle(
-                      color: _getStatusColor(analysis.status),
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-            ],
+    );
+  }
+
+  // Responsive layout for analysis buttons
+  Widget _buildAnalysisButtonsLayout(
+    BuildContext context,
+    EmotionAnalysisModel analysis,
+  ) {
+    // Determine if we need to use a vertical layout based on available width
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isNarrowScreen = screenWidth < 400; // Adjust threshold as needed
+
+    if (isNarrowScreen) {
+      // Vertical layout for small screens
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildAnalysisButton(
+            context,
+            'Frame Analysis',
+            Icons.photo_library,
+            analysis,
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          _buildAnalysisButton(context, 'Timeline', Icons.timeline, analysis),
+          const SizedBox(height: 8),
+          _buildAnalysisButton(context, 'Summary', Icons.summarize, analysis),
+        ],
+      );
+    } else {
+      // Wrap layout for larger screens
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        alignment: WrapAlignment.spaceEvenly,
+        children: [
+          _buildAnalysisButton(
+            context,
+            'Frame Analysis',
+            Icons.photo_library,
+            analysis,
+          ),
+          _buildAnalysisButton(context, 'Timeline', Icons.timeline, analysis),
+          _buildAnalysisButton(context, 'Summary', Icons.summarize, analysis),
+        ],
+      );
+    }
+  }
+
+  Widget _buildAnalysisButton(
+    BuildContext context,
+    String label,
+    IconData icon,
+    EmotionAnalysisModel analysis,
+  ) {
+    return ElevatedButton.icon(
+      icon: Icon(icon, size: 18),
+      label: Text(label, overflow: TextOverflow.ellipsis),
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        minimumSize: const Size(100, 36), // Set minimum size
+      ),
+      onPressed: () {
+        // Navigate to appropriate analysis page instead of opening URL
+        if (label == 'Frame Analysis') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FramesAnalysisPage(analysis: analysis),
+            ),
+          );
+        } else if (label == 'Timeline') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TimelineAnalysisPage(analysis: analysis),
+            ),
+          );
+        } else if (label == 'Summary') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SummaryAnalysisPage(analysis: analysis),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -412,48 +487,6 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
       return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
     }
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
-  }
-
-  Widget _buildAnalysisButton(
-    BuildContext context,
-    String label,
-    IconData icon,
-    EmotionAnalysisModel analysis,
-  ) {
-    return ElevatedButton.icon(
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.blue,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      ),
-      onPressed: () {
-        // Navigate to appropriate analysis page instead of opening URL
-        if (label == 'Frame Analysis') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FramesAnalysisPage(analysis: analysis),
-            ),
-          );
-        } else if (label == 'Timeline') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TimelineAnalysisPage(analysis: analysis),
-            ),
-          );
-        } else if (label == 'Summary') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SummaryAnalysisPage(analysis: analysis),
-            ),
-          );
-        }
-      },
-    );
   }
 
   Widget _buildInfoRow(IconData icon, String text) {
