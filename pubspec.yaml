@@ -49,6 +49,9 @@ dependencies:
   package_rename: ^1.9.0
   google_fonts: ^6.2.1
   intl: ^0.20.2
+  image_picker: ^1.1.2
+  path: ^1.9.1
+  http_parser: ^4.1.2
 
 dev_dependencies:
   flutter_test:

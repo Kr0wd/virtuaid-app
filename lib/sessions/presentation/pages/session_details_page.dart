@@ -5,6 +5,7 @@ import '../../../core/utils/string_extensions.dart';
 import '../../data/models/session_model.dart';
 import '../../data/repositories/session_repository.dart';
 import '../bloc/sessions_bloc.dart';
+import '../pages/video_analysis_page.dart';
 
 class SessionDetailsPage extends StatefulWidget {
   final SessionModel session;
@@ -174,6 +175,8 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
                 ),
                 const SizedBox(height: 16),
                 _buildNotesSection(context, currentSession),
+                const SizedBox(height: 16),
+                _buildAnalyzeEmotionButton(context, currentSession),
               ],
             ),
           );
@@ -322,6 +325,31 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAnalyzeEmotionButton(
+    BuildContext context,
+    SessionModel session,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.video_camera_front),
+        label: const Text('Analyze Emotion'),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VideoAnalysisPage(session: session),
+            ),
+          );
+        },
       ),
     );
   }
