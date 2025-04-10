@@ -52,8 +52,9 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
 
   Widget _buildContent(BuildContext context) {
     // Load the emotion analyses when the page is built
-    context.read<SessionsBloc>()
-      ..add(FetchSessionEmotionAnalyses(sessionId: widget.session.id));
+    context.read<SessionsBloc>().add(
+      FetchSessionEmotionAnalyses(sessionId: widget.session.id),
+    );
 
     return Scaffold(
       appBar: AppBar(
