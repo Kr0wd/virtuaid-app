@@ -122,18 +122,28 @@ class DashboardContent extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-            _buildInsightCard(
-              title: 'Residents',
-              value: data.count.toString(),
-              icon: Icons.people,
-              color: Colors.blue,
-            ),
-            const SizedBox(height: 16),
-            _buildInsightCard(
-              title: 'Active Care Plans',
-              value: '${data.results.length}',
-              icon: Icons.healing,
-              color: Colors.green,
+            // Make insight cards responsive using a Wrap
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: [
+                Flexible(
+                  child: _buildInsightCard(
+                    title: 'Residents',
+                    value: data.count.toString(),
+                    icon: Icons.people,
+                    color: Colors.blue,
+                  ),
+                ),
+                Flexible(
+                  child: _buildInsightCard(
+                    title: 'Active Care Plans',
+                    value: '${data.results.length}',
+                    icon: Icons.healing,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
 
@@ -201,15 +211,7 @@ class DashboardContent extends StatelessWidget {
                   },
                 ),
 
-            // Show view all button if there are more than 3 residents
-            if (data.results.length > 3)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: TextButton(
-                  onPressed: () => context.push(AppRouter.residentsPath),
-                  child: const Text('View all residents'),
-                ),
-              ),
+            // Remove the redundant "View all residents" button
             const SizedBox(height: 24),
 
             const Text(
@@ -217,35 +219,57 @@ class DashboardContent extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 3,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              children: [
-                _buildQuickAccessTile(
-                  context,
-                  'Sessions',
-                  Icons.calendar_today,
-                  Colors.indigo,
-                  () => context.push(AppRouter.sessionsPath),
-                ),
-                _buildQuickAccessTile(
-                  context,
-                  'Appointments',
-                  Icons.schedule,
-                  Colors.orange,
-                  () => context.push(AppRouter.appointmentsPath),
-                ),
-                _buildQuickAccessTile(
-                  context,
-                  'Feedbacks',
-                  Icons.feedback,
-                  Colors.purple,
-                  () => context.push(AppRouter.feedbacksPath),
-                ),
-              ],
+            // Replace GridView.count with a responsive LayoutBuilder
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // Calculate number of columns based on available width
+                // For smaller screens use fewer columns
+                final double availableWidth = constraints.maxWidth;
+                final int crossAxisCount = availableWidth < 400 ? 2 : 3;
+
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    // Adjust aspect ratio to avoid overflow with larger text
+                    childAspectRatio: availableWidth < 400 ? 1.2 : 1.1,
+                  ),
+                  itemCount: 3,
+                  itemBuilder: (context, index) {
+                    final items = [
+                      {
+                        'title': 'Sessions',
+                        'icon': Icons.calendar_today,
+                        'color': Colors.indigo,
+                        'onTap': () => context.push(AppRouter.sessionsPath),
+                      },
+                      {
+                        'title': 'Appointments',
+                        'icon': Icons.schedule,
+                        'color': Colors.orange,
+                        'onTap': () => context.push(AppRouter.appointmentsPath),
+                      },
+                      {
+                        'title': 'Feedbacks',
+                        'icon': Icons.feedback,
+                        'color': Colors.purple,
+                        'onTap': () => context.push(AppRouter.feedbacksPath),
+                      },
+                    ];
+                    final item = items[index];
+                    return _buildQuickAccessTile(
+                      context,
+                      item['title'] as String,
+                      item['icon'] as IconData,
+                      item['color'] as Color,
+                      item['onTap'] as VoidCallback,
+                    );
+                  },
+                );
+              },
             ),
           ],
         ),

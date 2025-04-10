@@ -14,17 +14,13 @@ class ResidentsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Residents'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => context.push(AppRouter.newResidentPath),
-            tooltip: 'Add New Resident',
-          ),
-        ],
-      ),
+      // Remove appBar as it's already provided by MainShellPage
       body: const ResidentsContent(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push(AppRouter.newResidentPath),
+        tooltip: 'Add New Resident',
+        child: const Icon(Icons.person_add),
+      ),
     );
   }
 }
