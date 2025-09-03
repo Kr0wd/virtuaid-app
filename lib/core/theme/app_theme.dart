@@ -4,19 +4,21 @@ import 'app_colors.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
+    final baseScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.baseBlue,
+      brightness: Brightness.light,
+    ).copyWith(
+      primary: AppColors.baseBlue,
+      secondary: AppColors.baseRed,
+      surface: AppColors.bg,
+      onPrimary: AppColors.white,
+      onSecondary: AppColors.white,
+      onSurface: AppColors.colorDark,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme(
-        primary: AppColors.baseBlue,
-        secondary: AppColors.baseRed,
-        surface: AppColors.bg,
-        error: Colors.redAccent,
-        onPrimary: AppColors.white,
-        onSecondary: AppColors.white,
-        onSurface: AppColors.colorDark,
-        onError: AppColors.white,
-        brightness: Brightness.light,
-      ),
+      colorScheme: baseScheme,
       scaffoldBackgroundColor: AppColors.bg,
       cardColor: AppColors.white,
       textTheme: GoogleFonts.poppinsTextTheme(),
@@ -27,10 +29,10 @@ class AppTheme {
           fontWeight: FontWeight.w500,
           color: AppColors.blackPrimary,
         ),
-        iconTheme: IconThemeData(color: AppColors.colorDark),
+        iconTheme: const IconThemeData(color: AppColors.colorDark),
         elevation: 0,
       ),
-      buttonTheme: ButtonThemeData(
+      buttonTheme: const ButtonThemeData(
         buttonColor: AppColors.baseBlue,
         textTheme: ButtonTextTheme.primary,
       ),
@@ -43,15 +45,15 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.baseBlue,
-          side: BorderSide(color: AppColors.baseBlue),
+          side: const BorderSide(color: AppColors.baseBlue),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(foregroundColor: AppColors.baseBlue),
       ),
-      iconTheme: IconThemeData(color: AppColors.infoDark),
-      dividerTheme: DividerThemeData(color: AppColors.infoLight),
-      cardTheme: CardTheme(
+      iconTheme: const IconThemeData(color: AppColors.infoDark),
+      dividerTheme: const DividerThemeData(color: AppColors.infoLight),
+      cardTheme: CardThemeData(
         color: AppColors.white,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

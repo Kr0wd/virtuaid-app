@@ -34,8 +34,8 @@ class DioService {
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
         headers: ApiConstants.headers,
-        connectTimeout: Duration(milliseconds: ApiConstants.connectTimeout),
-        receiveTimeout: Duration(milliseconds: ApiConstants.receiveTimeout),
+        connectTimeout: const Duration(milliseconds: ApiConstants.connectTimeout),
+        receiveTimeout: const Duration(milliseconds: ApiConstants.receiveTimeout),
         validateStatus: (status) {
           return status != null && status < 500;
         },

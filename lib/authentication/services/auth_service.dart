@@ -2,12 +2,17 @@ import 'package:dio/dio.dart';
 import '../models/user_model.dart';
 import '../models/auth_model.dart';
 import 'token_service.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in/google_sign_in.dart' as gsi;
 
 class AuthService {
   final Dio _dio;
   final TokenService _tokenService;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+
+  // Namespaced to avoid any local symbol collision.
+  final gsi.GoogleSignIn _googleSignIn = gsi.GoogleSignIn(
+    scopes: <String>['email', 'profile'],
+    // clientId / serverClientId if needed for web/iOS.
+  );
 
   AuthService(this._dio, this._tokenService);
 
@@ -73,41 +78,33 @@ class AuthService {
   // Google Sign-In method
   Future<AuthModel> googleLogin() async {
     try {
-      // Start the Google Sign-In process
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
+      final gsi.GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         throw Exception('Google Sign-In was cancelled');
       }
-
-      // Get the authentication details
-      final GoogleSignInAuthentication googleAuth =
+      final gsi.GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      // Get ID token and access token
-      final String? accessToken = googleAuth.accessToken;
+      final String? idToken = googleAuth.idToken;
+      // accessToken is still available; use if your backend expects it:
+      // final String? accessToken = googleAuth.accessToken;
 
-      if (accessToken == null) {
-        throw Exception('Could not get Google access token');
+      if (idToken == null) {
+        throw Exception('Missing Google ID token');
       }
 
-      // Send the access token to your backend
       final response = await _dio.post(
         '/auth/google/callback/',
-        data: {'access_token': accessToken},
+        data: {'id_token': idToken},
       );
 
       final backendAccessToken = response.data['access'];
       final refreshToken = response.data['refresh'];
-
-      // Store the refresh token
       await _tokenService.saveRefreshToken(refreshToken);
-
-      // Fetch user info using the token from your backend
       final user = await _fetchUserInfo(backendAccessToken);
-
       return AuthModel(accessToken: backendAccessToken, user: user);
     } catch (e) {
+      await _googleSignIn.signOut();
       throw _handleError(e, 'Google login failed');
     }
   }
@@ -117,6 +114,8 @@ class AuthService {
     try {
       final refreshToken = await _tokenService.getRefreshToken();
       if (accessToken != null) {
+        // Also sign the user out of Google
+        _googleSignIn.signOut();
         await _dio.post(
           '/auth/app/logout/',
           data: {'refresh': refreshToken},

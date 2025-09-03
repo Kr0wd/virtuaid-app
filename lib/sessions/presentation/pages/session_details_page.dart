@@ -159,7 +159,7 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
                         children: [
                           _buildInfoIcon(Icons.info_outline),
                           const SizedBox(width: 8),
-                          Text('Status: '),
+                          const Text('Status: '),
                           const SizedBox(width: 4),
                           _buildStatusChip(currentSession.status),
                         ],

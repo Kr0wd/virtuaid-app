@@ -284,7 +284,7 @@ class _SessionsList extends StatelessWidget {
                             color: Colors.grey[700],
                           ),
                           const SizedBox(width: 8),
-                          Text('Status: '),
+                          const Text('Status: '),
                           const SizedBox(width: 4),
                           _buildStatusChip(session.status),
                         ],

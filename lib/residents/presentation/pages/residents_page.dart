@@ -26,7 +26,7 @@ class ResidentsPage extends StatelessWidget {
 }
 
 class ResidentsContent extends StatelessWidget {
-  const ResidentsContent({Key? key}) : super(key: key);
+  const ResidentsContent({super.key});
 
   @override
   Widget build(BuildContext context) {

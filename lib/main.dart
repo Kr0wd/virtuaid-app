@@ -21,7 +21,7 @@ import 'package:flutter_starter/core/theme/app_theme.dart';
 
 void main() {
   final dioService = DioService();
-  runApp(AuthDependencies(dioService: dioService, child: MyApp()));
+  runApp(AuthDependencies(dioService: dioService, child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
