@@ -5,7 +5,17 @@ abstract class SessionsEvent {
 }
 
 class FetchSessions extends SessionsEvent {
-  const FetchSessions();
+  final int? page;
+  final int? pageSize;
+  final String? searchQuery;
+  final String? status;
+
+  const FetchSessions({
+    this.page,
+    this.pageSize,
+    this.searchQuery,
+    this.status,
+  });
 }
 
 class UpdateSessionStatus extends SessionsEvent {
@@ -20,4 +30,10 @@ class UpdateSessionNotes extends SessionsEvent {
   final String notes;
 
   const UpdateSessionNotes({required this.sessionId, required this.notes});
+}
+
+class FetchSessionEmotionAnalyses extends SessionsEvent {
+  final int sessionId;
+
+  const FetchSessionEmotionAnalyses({required this.sessionId});
 }

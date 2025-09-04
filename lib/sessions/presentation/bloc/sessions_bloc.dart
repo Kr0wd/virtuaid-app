@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/session_response.dart';
+
+import '../../data/models/emotion_analysis_model.dart';
 import '../../data/models/session_model.dart';
+import '../../data/models/sessions_response.dart';
 import '../../data/repositories/session_repository.dart';
 
 part 'sessions_event.dart';
@@ -13,6 +15,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     on<FetchSessions>(_onFetchSessions);
     on<UpdateSessionStatus>(_onUpdateSessionStatus);
     on<UpdateSessionNotes>(_onUpdateSessionNotes);
+    on<FetchSessionEmotionAnalyses>(_onFetchSessionEmotionAnalyses);
   }
 
   Future<void> _onFetchSessions(
@@ -21,8 +24,13 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   ) async {
     emit(SessionsLoading());
     try {
-      final sessionResponse = await _sessionRepository.getSessions();
-      emit(SessionsLoaded(sessionResponse));
+      final sessionsResponse = await _sessionRepository.getSessions(
+        page: event.page,
+        pageSize: event.pageSize,
+        searchQuery: event.searchQuery,
+        status: event.status,
+      );
+      emit(SessionsLoaded(sessionsResponse));
     } catch (e) {
       emit(SessionsError(e.toString()));
     }
@@ -35,9 +43,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     emit(SessionUpdateLoading(event.sessionId));
 
     try {
-      final updatedSession = await _sessionRepository.updateSession(
-        event.sessionId,
-        {'status': event.status},
+      final updatedSession = await _sessionRepository.updateSessionStatus(
+        sessionId: event.sessionId,
+        status: event.status,
       );
 
       emit(SessionUpdateSuccess(updatedSession));
@@ -56,9 +64,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     emit(SessionUpdateLoading(event.sessionId));
 
     try {
-      final updatedSession = await _sessionRepository.updateSession(
-        event.sessionId,
-        {'notes': event.notes},
+      final updatedSession = await _sessionRepository.updateSessionNotes(
+        sessionId: event.sessionId,
+        notes: event.notes,
       );
 
       emit(SessionUpdateSuccess(updatedSession));
@@ -67,6 +75,20 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       add(const FetchSessions());
     } catch (e) {
       emit(SessionUpdateError(e.toString()));
+    }
+  }
+
+  Future<void> _onFetchSessionEmotionAnalyses(
+    FetchSessionEmotionAnalyses event,
+    Emitter<SessionsState> emit,
+  ) async {
+    emit(EmotionAnalysesLoading());
+    try {
+      final emotionAnalyses = await _sessionRepository
+          .getSessionEmotionAnalyses(event.sessionId);
+      emit(EmotionAnalysesLoaded(emotionAnalyses));
+    } catch (e) {
+      emit(EmotionAnalysesError(e.toString()));
     }
   }
 }

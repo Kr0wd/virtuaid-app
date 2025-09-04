@@ -12,7 +12,7 @@ class SessionsInitial extends SessionsState {}
 class SessionsLoading extends SessionsState {}
 
 class SessionsLoaded extends SessionsState {
-  final SessionResponse sessionResponse;
+  final SessionsResponse sessionResponse;
 
   const SessionsLoaded(this.sessionResponse);
 }
@@ -40,4 +40,18 @@ class SessionUpdateError extends SessionsState {
   final String message;
 
   const SessionUpdateError(this.message);
+}
+
+class EmotionAnalysesLoading extends SessionsState {}
+
+class EmotionAnalysesLoaded extends SessionsState {
+  final List<EmotionAnalysisModel> emotionAnalyses;
+
+  const EmotionAnalysesLoaded(this.emotionAnalyses);
+}
+
+class EmotionAnalysesError extends SessionsState {
+  final String message;
+
+  const EmotionAnalysesError(this.message);
 }

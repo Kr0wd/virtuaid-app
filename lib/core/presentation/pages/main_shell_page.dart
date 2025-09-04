@@ -23,12 +23,7 @@ class _MainShellPageState extends State<MainShellPage> {
   }
 
   // List of pages to show in the shell
-  final List<Widget> _pages = const [
-    // Dashboard content without its own scaffold
-    DashboardContent(),
-    // Residents content without its own scaffold
-    ResidentsContent(),
-  ];
+  static const List<Widget> _pages = [DashboardPage(), ResidentsPage()];
 
   void _onItemTapped(int index) {
     setState(() {
