@@ -166,7 +166,7 @@ class _SessionsContentState extends State<_SessionsContent> {
               },
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

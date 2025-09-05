@@ -438,8 +438,8 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
 class TimelineAnalysisPage extends EmotionAnalysisPage {
   const TimelineAnalysisPage({
     super.key,
-    required EmotionAnalysisModel analysis,
-  }) : super(analysis: analysis, title: 'Timeline Analysis');
+    required super.analysis,
+  }) : super(title: 'Timeline Analysis');
 
   @override
   Widget buildBody(BuildContext context) {
@@ -824,8 +824,8 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
 }
 
 class SummaryAnalysisPage extends EmotionAnalysisPage {
-  const SummaryAnalysisPage({super.key, required EmotionAnalysisModel analysis})
-    : super(analysis: analysis, title: 'Summary Analysis');
+  const SummaryAnalysisPage({super.key, required super.analysis})
+    : super(title: 'Summary Analysis');
 
   @override
   Widget buildBody(BuildContext context) {

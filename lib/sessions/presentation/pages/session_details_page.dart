@@ -37,25 +37,17 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Create a local BlocProvider for this page
+    // Provide SessionsBloc and trigger initial load once
     return BlocProvider(
-      // Use the repository that's already provided at the app level
-      create: (context) => SessionsBloc(context.read<SessionRepository>()),
+      create: (context) => SessionsBloc(context.read<SessionRepository>())
+        ..add(FetchSessionEmotionAnalyses(sessionId: widget.session.id)),
       child: Builder(
-        builder: (context) {
-          // This context now has access to the local SessionsBloc
-          return _buildContent(context);
-        },
+        builder: (context) => _buildContent(context),
       ),
     );
   }
 
   Widget _buildContent(BuildContext context) {
-    // Load the emotion analyses when the page is built
-    context.read<SessionsBloc>().add(
-      FetchSessionEmotionAnalyses(sessionId: widget.session.id),
-    );
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Session Details'),
@@ -64,27 +56,17 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
       body: BlocConsumer<SessionsBloc, SessionsState>(
         listener: (context, state) {
           if (state is SessionUpdateSuccess) {
-            // Find the updated session in the results
             final updatedSession = state.updatedSession;
-
-            // Update the notes controller if notes were updated
             if (_notesController.text != updatedSession.notes) {
               _notesController.text = updatedSession.notes ?? '';
             }
-
-            // Show success message
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Session updated successfully')),
             );
-
-            // Exit edit mode
             if (_isEditingNotes) {
-              setState(() {
-                _isEditingNotes = false;
-              });
+              setState(() => _isEditingNotes = false);
             }
           } else if (state is SessionUpdateError) {
-            // Show error message
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Error: ${state.message}'),
@@ -94,99 +76,88 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
           }
         },
         builder: (context, state) {
-          // Use the original session model as the base
           SessionModel currentSession = widget.session;
-
           if (state is SessionUpdateSuccess) {
-            // Use the updated session from the success state
             currentSession = state.updatedSession;
           } else if (state is SessionUpdateLoading &&
               state.updatingSessionId == widget.session.id) {
-            // Show loading indicator for the specific session
             return const Center(child: CircularProgressIndicator());
           }
 
           final scheduledDate = DateTime.parse(currentSession.scheduledDate);
-          final formattedDate = DateFormat(
-            'MMMM d, yyyy',
-          ).format(scheduledDate);
+          final formattedDate = DateFormat('MMMM d, yyyy').format(scheduledDate);
           final formattedTime = DateFormat('h:mm a').format(scheduledDate);
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfoCard(
-                  title: 'Resident Information',
-                  content: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        currentSession.residentDetails.name,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildInfoRow(
-                        Icons.cake,
-                        'Date of Birth: ${DateFormat('MMMM d, yyyy').format(DateTime.parse(currentSession.residentDetails.dateOfBirth))}',
-                      ),
-                      const SizedBox(height: 8),
-                      _buildInfoRow(
-                        Icons.apartment,
-                        'Care Home: ${currentSession.residentDetails.careHome.name}',
-                      ),
-                    ],
-                  ),
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildInfoCard(
+                title: 'Resident Information',
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      currentSession.residentDetails.name,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoRow(
+                      Icons.cake,
+                      'Date of Birth: ${DateFormat('MMMM d, yyyy').format(DateTime.parse(currentSession.residentDetails.dateOfBirth))}',
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      Icons.apartment,
+                      'Care Home: ${currentSession.residentDetails.careHome.name}',
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                _buildInfoCard(
-                  title: 'Session Information',
-                  content: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfoRow(
-                        Icons.calendar_today,
-                        'Date: $formattedDate',
-                      ),
-                      const SizedBox(height: 8),
-                      _buildInfoRow(Icons.access_time, 'Time: $formattedTime'),
-                      const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _buildInfoIcon(Icons.info_outline),
-                          const SizedBox(width: 8),
-                          const Text('Status: '),
-                          const SizedBox(width: 4),
-                          _buildStatusChip(currentSession.status),
-                        ],
-                      ),
-                      if (currentSession.endTime != null) ...[
-                        const SizedBox(height: 8),
-                        _buildInfoRow(
-                          Icons.timer_off,
-                          'End Time: ${DateFormat('MMMM d, yyyy h:mm a').format(DateTime.parse(currentSession.endTime!))}',
-                        ),
+              ),
+              const SizedBox(height: 16),
+              _buildInfoCard(
+                title: 'Session Information',
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoRow(Icons.calendar_today, 'Date: $formattedDate'),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(Icons.access_time, 'Time: $formattedTime'),
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _buildInfoIcon(Icons.info_outline),
+                        const SizedBox(width: 8),
+                        const Text('Status: '),
+                        const SizedBox(width: 4),
+                        _buildStatusChip(currentSession.status),
                       ],
+                    ),
+                    if (currentSession.endTime != null) ...[
                       const SizedBox(height: 8),
                       _buildInfoRow(
-                        Icons.feedback,
-                        'Feedback Status: ${currentSession.feedbackStatus}',
+                        Icons.timer_off,
+                        'End Time: ${DateFormat('MMMM d, yyyy h:mm a').format(DateTime.parse(currentSession.endTime!))}',
                       ),
                     ],
-                  ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      Icons.feedback,
+                      'Feedback Status: ${currentSession.feedbackStatus}',
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                _buildNotesSection(context, currentSession),
-                const SizedBox(height: 16),
-                _buildEmotionAnalysesSection(context),
-                const SizedBox(height: 16),
-                _buildAnalyzeEmotionButton(context, currentSession),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              _buildNotesSection(context, currentSession),
+              const SizedBox(height: 16),
+              // Moved Analyze button ABOVE emotion analyses
+              _buildAnalyzeEmotionButton(context, currentSession),
+              const SizedBox(height: 16),
+              _buildEmotionAnalysesSection(context),
+            ],
           );
         },
       ),
@@ -200,89 +171,80 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Emotion Detection Analyses',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-            ),
-            const Divider(height: 24),
-            BlocBuilder<SessionsBloc, SessionsState>(
-              builder: (context, state) {
-                if (state is EmotionAnalysesLoading) {
-                  return const Center(
+        child: BlocBuilder<SessionsBloc, SessionsState>(
+          builder: (context, state) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Emotion Detection Analyses',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+                const Divider(height: 24),
+                if (state is EmotionAnalysesLoading)
+                  const Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20.0),
+                      padding: EdgeInsets.symmetric(vertical: 20),
                       child: CircularProgressIndicator(),
                     ),
-                  );
-                } else if (state is EmotionAnalysesError) {
-                  return Center(
+                  )
+                else if (state is EmotionAnalysesError)
+                  Center(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Column(
                         children: [
                           Text(
-                            'Error loading emotion analyses: ${state.message}',
+                            'Error: ${state.message}',
                             style: const TextStyle(color: Colors.red),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           ElevatedButton(
                             onPressed: () {
                               context.read<SessionsBloc>().add(
-                                FetchSessionEmotionAnalyses(
-                                  sessionId: widget.session.id,
-                                ),
-                              );
+                                    FetchSessionEmotionAnalyses(
+                                      sessionId: widget.session.id,
+                                    ),
+                                  );
                             },
                             child: const Text('Try Again'),
                           ),
                         ],
                       ),
                     ),
-                  );
-                } else if (state is EmotionAnalysesLoaded) {
-                  final analyses = state.emotionAnalyses;
-                  if (analyses.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20.0),
-                      child: Center(
-                        child: Text(
-                          'No emotion analyses found for this session.',
-                          style: TextStyle(fontStyle: FontStyle.italic),
-                        ),
-                      ),
-                    );
-                  }
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: analyses.length,
-                    itemBuilder: (context, index) {
-                      final analysis = analyses[index];
-                      return _buildEmotionAnalysisItem(context, analysis);
-                    },
-                  );
-                }
-
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20.0),
+                  )
+                else if (state is EmotionAnalysesLoaded)
+                  (state.emotionAnalyses.isEmpty)
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Center(
+                            child: Text(
+                              'No emotion analyses found.',
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                          ),
+                        )
+                      : Column(
+                          children: state.emotionAnalyses
+                              .map((a) => _buildEmotionAnalysisItem(context, a))
+                              .toList(),
+                        )
+                else
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     child: Text(
-                      'No emotion analyses data available',
+                      'No emotion analyses data available.',
                       style: TextStyle(fontStyle: FontStyle.italic),
                     ),
                   ),
-                );
-              },
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );

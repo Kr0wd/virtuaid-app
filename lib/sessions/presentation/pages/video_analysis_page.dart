@@ -9,6 +9,7 @@ import '../bloc/video_analysis_bloc.dart';
 import '../bloc/video_analysis_event.dart';
 import '../bloc/video_analysis_state.dart';
 import '../widgets/video_upload_success_widget.dart';
+import 'stimulus_selection_page.dart';
 
 class VideoAnalysisPage extends StatefulWidget {
   final SessionModel session;
@@ -65,28 +66,54 @@ class _VideoAnalysisPageState extends State<VideoAnalysisPage> {
   void _showSourceSelector() {
     showModalBottomSheet(
       context: context,
-      builder:
-          (context) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Record new video'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickVideo(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from gallery'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickVideo(ImageSource.gallery);
-                },
-              ),
-            ],
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.camera_alt),
+            title: const Text('Record new video'),
+            onTap: () {
+              Navigator.pop(context);
+              _pickVideo(ImageSource.camera);
+            },
           ),
+          ListTile(
+            leading: const Icon(Icons.photo_library),
+            title: const Text('Choose from gallery'),
+            onTap: () {
+              Navigator.pop(context);
+              _pickVideo(ImageSource.gallery);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.live_tv),
+            title: const Text('Live Reaction Recording'),
+            onTap: () async {
+              Navigator.pop(context);
+              final result = await Navigator.push<Map<String, dynamic>?>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => StimulusSelectionPage(
+                    session: widget.session,
+                  ),
+                ),
+              );
+              if (result != null && result['file'] != null) {
+                setState(() {
+                  _videoFile = result['file'] as File;
+                  final stimulusTitle = result['stimulusTitle'] as String?;
+                  if (stimulusTitle != null) {
+                    _titleController.text = 'Reaction to $stimulusTitle';
+                  }
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Reaction recording ready')),
+                );
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 
