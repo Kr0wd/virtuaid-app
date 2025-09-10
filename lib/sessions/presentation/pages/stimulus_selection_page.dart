@@ -6,7 +6,7 @@ import '../../data/models/session_model.dart';
 
 class StimulusVideo {
   final int id;
-  final String title;
+  final String title; 
   final String url; // dummy
   final Duration? duration;
   StimulusVideo({

@@ -29,7 +29,7 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
 
   int _countdown = 3;
   bool _isCancelling = false;
-  bool _isDownloading = false;
+  final bool _isDownloading = false;
 
   @override
   void initState() {
