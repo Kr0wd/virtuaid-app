@@ -35,34 +35,27 @@ class _FrameAnalysisPageState extends State<FrameAnalysisPage> {
         return;
       }
 
-      // Extract the relative path from the full URL by removing the base URL part
-      final uri = Uri.parse(fullUrl);
-      final segments = uri.pathSegments;
-
-      // Find where 'api' appears in the path (if at all)
-      int apiIndex = segments.indexOf('api');
-      final List<String> relativePath =
-          apiIndex >= 0 ? segments.sublist(apiIndex + 1) : segments;
-
-      // Join the path segments to form the relative path
-      final relativeUrl = relativePath.join('/');
-
       final dioService = DioService();
-      final response = await dioService.dioInstance.get(relativeUrl);
+      final response = await dioService.dioInstance.get(fullUrl);
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        setState(() {
-          _frames = data['results'];
-          _isLoading = false;
-        });
-        print("Frames data loaded: ${_frames.length} items");
+      final data = response.data;
+      List<dynamic> items;
+      if (data is List) {
+        items = data;
+      } else if (data is Map && data['results'] is List) {
+        items = List<dynamic>.from(data['results']);
+      } else if (data is Map && data['data'] is List) {
+        items = List<dynamic>.from(data['data']);
+      } else if (data is Map && data.isNotEmpty) {
+        items = [data];
       } else {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Failed to load frames: ${response.statusCode}';
-        });
+        items = const [];
       }
+      setState(() {
+        _frames = items;
+        _isLoading = false;
+      });
+      print("Frames data loaded: ${_frames.length} items");
     } catch (e) {
       setState(() {
         _isLoading = false;

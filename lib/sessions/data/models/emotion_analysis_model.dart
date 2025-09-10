@@ -5,32 +5,32 @@ part 'emotion_analysis_model.g.dart';
 @JsonSerializable()
 class EmotionAnalysisModel {
   final String id;
-  final String title;
-  final String description;
+  final String? title;
+  final String? description;
   final String file;
   @JsonKey(name: 'file_size')
-  final int fileSize;
+  final int? fileSize;
   @JsonKey(name: 'uploaded_at')
-  final String uploadedAt;
+  final String? uploadedAt;
   @JsonKey(name: 'updated_at')
-  final String updatedAt;
+  final String? updatedAt;
   final String status;
   @JsonKey(name: 'therapy_session')
-  final int therapySession;
+  final int? therapySession;
   final int? resident;
   @JsonKey(name: 'emotion_analysis_urls')
   final EmotionAnalysisUrls emotionAnalysisUrls;
 
   EmotionAnalysisModel({
     required this.id,
-    required this.title,
-    required this.description,
+    this.title,
+    this.description,
     required this.file,
-    required this.fileSize,
-    required this.uploadedAt,
-    required this.updatedAt,
-    required this.status,
-    required this.therapySession,
+    this.fileSize,
+    this.uploadedAt,
+    this.updatedAt,
+  required this.status,
+  this.therapySession,
     this.resident,
     required this.emotionAnalysisUrls,
   });

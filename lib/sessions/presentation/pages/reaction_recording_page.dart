@@ -22,6 +22,7 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
 
   CameraController? _camera;
   VideoPlayerController? _videoCtrl;
+  VideoPlayerController? _previewCtrl;
 
   // ignore: unused_field
   File? _stimulusLocalFile;
@@ -137,7 +138,9 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
       }
     } catch (_) {}
     if (!mounted) return;
-    setState(() => state = _RRState.preview);
+  setState(() => state = _RRState.preview);
+  // Initialize preview controller once when entering preview
+  await _initPreviewController();
     if (autoComplete) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Recording complete')),
@@ -158,6 +161,7 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
     // Reset
     _videoCtrl?.removeListener(_videoListener);
     await _videoCtrl?.dispose();
+  await _disposePreviewController();
     _recordedFile = null;
     _countdown = 3;
     setState(() => state = _RRState.countdown);
@@ -172,6 +176,10 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
       );
       return;
     }
+  // Ensure preview playback is stopped before leaving
+  _previewCtrl?.pause();
+  _previewCtrl?.seekTo(Duration.zero);
+  _disposePreviewController();
     Navigator.pop<Map<String, dynamic>>(
       context,
       {
@@ -184,6 +192,7 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
   void dispose() {
     _videoCtrl?.removeListener(_videoListener);
     _videoCtrl?.dispose();
+  _disposePreviewController();
     _camera?.dispose();
     super.dispose();
   }
@@ -208,10 +217,13 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        if (state == _RRState.recording) {
+  if (state == _RRState.recording) {
           await _cancelMidPlayback();
           return false;
         }
+  // Pause any playback before leaving
+  _videoCtrl?.pause();
+  _previewCtrl?.pause();
         return true;
       },
       child: Scaffold(
@@ -347,21 +359,52 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
                     style: TextStyle(color: Colors.white),
                   ),
                 )
-              : FutureBuilder<VideoPlayerController>(
-                  future: _createPreviewController(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      );
-                    }
-                    final ctrl = snapshot.data!;
-                    return AspectRatio(
-                      aspectRatio: ctrl.value.aspectRatio,
-                      child: VideoPlayer(ctrl),
-                    );
-                  },
-                ),
+              : (_previewCtrl != null && _previewCtrl!.value.isInitialized)
+                  ? Stack(
+                      children: [
+                        Center(
+                          child: AspectRatio(
+                            aspectRatio: _previewCtrl!.value.aspectRatio,
+                            child: VideoPlayer(_previewCtrl!),
+                          ),
+                        ),
+                        Positioned(
+                          top: 12,
+                          right: 12,
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  _previewCtrl!.value.isPlaying
+                                      ? Icons.pause
+                                      : Icons.play_arrow,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {
+                                  if (_previewCtrl!.value.isPlaying) {
+                                    _previewCtrl!.pause();
+                                  } else {
+                                    _previewCtrl!.play();
+                                  }
+                                  setState(() {});
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.stop, color: Colors.white),
+                                onPressed: () async {
+                                  await _previewCtrl!.pause();
+                                  await _previewCtrl!.seekTo(Duration.zero);
+                                  setState(() {});
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
         ),
         Padding(
           padding: const EdgeInsets.all(12),
@@ -376,7 +419,12 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () async {
+                    await _previewCtrl?.pause();
+                    await _previewCtrl?.seekTo(Duration.zero);
+                    _disposePreviewController();
+                    if (mounted) Navigator.pop(context);
+                  },
                   child: const Text('Discard'),
                 ),
               ),
@@ -394,11 +442,22 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
     );
   }
 
-  Future<VideoPlayerController> _createPreviewController() async {
+  Future<void> _initPreviewController() async {
+    await _disposePreviewController();
+    if (_recordedFile == null) return;
     final ctrl = VideoPlayerController.file(_recordedFile!);
     await ctrl.initialize();
-    ctrl.setLooping(true);
-    ctrl.play();
-    return ctrl;
+    await ctrl.setLooping(false);
+    // Start paused; let user control playback
+    _previewCtrl = ctrl;
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _disposePreviewController() async {
+    try {
+      await _previewCtrl?.pause();
+      await _previewCtrl?.dispose();
+    } catch (_) {}
+    _previewCtrl = null;
   }
 }

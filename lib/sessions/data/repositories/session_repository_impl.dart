@@ -72,11 +72,27 @@ class SessionRepositoryImpl implements SessionRepository {
     int sessionId,
   ) async {
     try {
+      // Correct endpoint per integrate.md: /sessions/{session_id}/videos/
       final response = await _dioService.dioInstance.get(
-        'sessions/$sessionId/analysis/emotions/',
+        'sessions/$sessionId/videos/',
       );
 
-      return (response.data as List)
+      final raw = response.data;
+      final List list;
+      if (raw is List) {
+        list = raw;
+      } else if (raw is Map && raw['results'] is List) {
+        list = raw['results'];
+      } else if (raw is Map && raw['data'] is List) {
+        list = raw['data'];
+      } else if (raw is Map && raw.isNotEmpty) {
+        list = [raw];
+      } else {
+        list = const [];
+      }
+
+      return list
+          .whereType<Map<String, dynamic>>()
           .map((item) => EmotionAnalysisModel.fromJson(item))
           .toList();
     } on DioException catch (e) {

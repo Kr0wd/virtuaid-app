@@ -255,16 +255,18 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
     EmotionAnalysisModel analysis,
   ) {
     // Format the date for better display
-    final uploadedDate = DateFormat(
-      'MMM d, yyyy h:mm a',
-    ).format(DateTime.parse(analysis.uploadedAt));
+    final uploadedDate = analysis.uploadedAt != null
+        ? DateFormat('MMM d, yyyy h:mm a').format(
+            DateTime.tryParse(analysis.uploadedAt!) ?? DateTime.now(),
+          )
+        : '—';
     final fileName = analysis.file.split('/').last;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6.0),
       child: ExpansionTile(
         title: Text(
-          analysis.title,
+          analysis.title ?? 'Session Video',
           style: const TextStyle(fontWeight: FontWeight.bold),
           overflow: TextOverflow.ellipsis,
         ),
@@ -287,17 +289,17 @@ class _SessionDetailsPageState extends State<SessionDetailsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (analysis.description.isNotEmpty)
+        if ((analysis.description ?? '').isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: Text(
-                      'Description: ${analysis.description}',
+          'Description: ${analysis.description}',
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 Text('File: $fileName', overflow: TextOverflow.ellipsis),
-                Text('Size: ${_formatFileSize(analysis.fileSize)}'),
+        Text('Size: ${_formatFileSize(analysis.fileSize ?? 0)}'),
                 const SizedBox(height: 16),
                 if (analysis.status == 'completed')
                   _buildAnalysisButtonsLayout(context, analysis)

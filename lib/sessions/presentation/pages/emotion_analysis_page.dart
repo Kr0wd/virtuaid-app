@@ -67,36 +67,27 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
         return;
       }
 
-      // Extract the relative path from the full URL by removing the base URL part
-      // For URLs like http://localhost:8000/api/analysis/videos/8899aa8d-c2f2-4af6-aa07-44549bd037db/frames/
-      // We need to extract 'analysis/videos/8899aa8d-c2f2-4af6-aa07-44549bd037db/frames/'
-
-      final uri = Uri.parse(fullUrl);
-      final segments = uri.pathSegments;
-
-      // Find where 'api' appears in the path (if at all)
-      int apiIndex = segments.indexOf('api');
-      final List<String> relativePath =
-          apiIndex >= 0 ? segments.sublist(apiIndex + 1) : segments;
-
-      // Join the path segments to form the relative path
-      final relativeUrl = relativePath.join('/');
-
+      // Backend already returns absolute API URLs; we can call them directly.
       final dioService = DioService();
-      final response = await dioService.dioInstance.get(relativeUrl);
+      final response = await dioService.dioInstance.get(fullUrl);
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        setState(() {
-          _frames = data['results'];
-          _isLoading = false;
-        });
+      final data = response.data;
+      List<dynamic> items;
+      if (data is List) {
+        items = data;
+      } else if (data is Map && data['results'] is List) {
+        items = List<dynamic>.from(data['results']);
+      } else if (data is Map && data['data'] is List) {
+        items = List<dynamic>.from(data['data']);
+      } else if (data is Map && data.isNotEmpty) {
+        items = [data];
       } else {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Failed to load frames: ${response.statusCode}';
-        });
+        items = const [];
       }
+      setState(() {
+        _frames = items;
+        _isLoading = false;
+      });
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -212,8 +203,13 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
     final seconds = (timestamp % 60).toStringAsFixed(2).padLeft(5, '0');
     final timeFormatted = '$minutes:$seconds';
 
-    final createdAt = DateTime.parse(frame['created_at']);
-    final formattedDate = DateFormat('MMM d, yyyy HH:mm:ss').format(createdAt);
+    String? formattedDate;
+    if (frame['created_at'] != null) {
+      try {
+        final createdAt = DateTime.parse(frame['created_at'].toString());
+        formattedDate = DateFormat('MMM d, yyyy HH:mm:ss').format(createdAt);
+      } catch (_) {}
+    }
 
     final angry = (frame['angry'] * 100).toStringAsFixed(1);
     final sad = (frame['sad'] * 100).toStringAsFixed(1);
@@ -263,7 +259,7 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
 
   Widget _buildNarrowFrameContent(
     String timeFormatted,
-    String formattedDate,
+    String? formattedDate,
     String angry,
     String sad,
     String happy,
@@ -283,7 +279,8 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
           ],
         ),
         const SizedBox(height: 8),
-        Text('Created: $formattedDate', style: const TextStyle(fontSize: 12)),
+        if (formattedDate != null)
+          Text('Created: $formattedDate', style: const TextStyle(fontSize: 12)),
         const Divider(),
         const SizedBox(height: 8),
         _buildEmotionIndicator(
@@ -311,7 +308,7 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
 
   Widget _buildWideFrameContent(
     String timeFormatted,
-    String formattedDate,
+    String? formattedDate,
     String angry,
     String sad,
     String happy,
@@ -337,10 +334,11 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Created: $formattedDate',
-                    style: const TextStyle(fontSize: 12),
-                  ),
+                  if (formattedDate != null)
+                    Text(
+                      'Created: $formattedDate',
+                      style: const TextStyle(fontSize: 12),
+                    ),
                 ],
               ),
             ),
@@ -481,34 +479,27 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
         return;
       }
 
-      // Extract the relative path from the full URL by removing the base URL part
-      final uri = Uri.parse(fullUrl);
-      final segments = uri.pathSegments;
-
-      // Find where 'api' appears in the path (if at all)
-      int apiIndex = segments.indexOf('api');
-      final List<String> relativePath =
-          apiIndex >= 0 ? segments.sublist(apiIndex + 1) : segments;
-
-      // Join the path segments to form the relative path
-      final relativeUrl = relativePath.join('/');
-
       final dioService = DioService();
-      final response = await dioService.dioInstance.get(relativeUrl);
+      final response = await dioService.dioInstance.get(fullUrl);
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        setState(() {
-          _timelineData = data['results'] ?? [];
-          _isLoading = false;
-        });
-        print("Timeline data loaded: ${_timelineData.length} items");
+      final data = response.data;
+      List<dynamic> items;
+      if (data is List) {
+        items = data;
+      } else if (data is Map && data['results'] is List) {
+        items = List<dynamic>.from(data['results']);
+      } else if (data is Map && data['data'] is List) {
+        items = List<dynamic>.from(data['data']);
+      } else if (data is Map && data.isNotEmpty) {
+        items = [data];
       } else {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Failed to load timeline: ${response.statusCode}';
-        });
+        items = const [];
       }
+      setState(() {
+        _timelineData = items;
+        _isLoading = false;
+      });
+      print("Timeline data loaded: ${_timelineData.length} items");
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -561,10 +552,19 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
   }
 
   Widget _buildEmotionTimeline() {
-    // Sort the timeline data by timestamp to ensure chronological order
-    _timelineData.sort(
-      (a, b) => (a['timestamp'] as num).compareTo(b['timestamp'] as num),
-    );
+    // Sort the timeline data by timestamp/start_time to ensure chronological order
+    int _ts(dynamic item) {
+      if (item is Map<String, dynamic>) {
+        final v = item['timestamp'] ?? item['start_time'] ?? item['start'];
+        if (v is num) return v.floor();
+        if (v is String) {
+          final d = double.tryParse(v);
+          if (d != null) return d.floor();
+        }
+      }
+      return 0;
+    }
+    _timelineData.sort((a, b) => _ts(a).compareTo(_ts(b)));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -650,17 +650,52 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
   }
 
   Widget _buildEmotionCard(dynamic timelineItem, int index) {
-    // Get emotion values
-    final happy = (timelineItem['happy'] * 100).toStringAsFixed(1);
-    final sad = (timelineItem['sad'] * 100).toStringAsFixed(1);
-    final angry = (timelineItem['angry'] * 100).toStringAsFixed(1);
+    // Get emotion values; handle cases where backend provides only dominant_emotion
+    double happyVal = 0, sadVal = 0, angryVal = 0;
+    if (timelineItem['happy'] != null) {
+      happyVal = (timelineItem['happy'] as num).toDouble();
+    }
+    if (timelineItem['sad'] != null) {
+      sadVal = (timelineItem['sad'] as num).toDouble();
+    }
+    if (timelineItem['angry'] != null) {
+      angryVal = (timelineItem['angry'] as num).toDouble();
+    }
     final dominantEmotion = _getDominantEmotion(timelineItem);
+    if (happyVal == 0 && sadVal == 0 && angryVal == 0 && dominantEmotion.isNotEmpty) {
+      // Represent dominant emotion as 100% when no split provided
+      switch (dominantEmotion.toLowerCase()) {
+        case 'happy':
+          happyVal = 1.0;
+          break;
+        case 'sad':
+          sadVal = 1.0;
+          break;
+        case 'angry':
+          angryVal = 1.0;
+          break;
+      }
+    }
 
-    // Format timestamp
-    final timestamp = timelineItem['timestamp'].toDouble();
-    final minutes = (timestamp ~/ 60).toString().padLeft(2, '0');
-    final seconds = (timestamp % 60).toStringAsFixed(2).padLeft(5, '0');
-    final timeFormatted = '$minutes:$seconds';
+    // Format timestamp; prefer 'timestamp', else show start->end time
+    String timeFormatted;
+    if (timelineItem['timestamp'] != null) {
+      final timestamp = (timelineItem['timestamp'] as num).toDouble();
+      final minutes = (timestamp ~/ 60).toString().padLeft(2, '0');
+      final seconds = (timestamp % 60).toStringAsFixed(2).padLeft(5, '0');
+      timeFormatted = '$minutes:$seconds';
+    } else if (timelineItem['start_time'] != null && timelineItem['end_time'] != null) {
+      final start = (timelineItem['start_time'] as num).toDouble();
+      final end = (timelineItem['end_time'] as num).toDouble();
+      String fmt(double t) {
+        final m = (t ~/ 60).toString().padLeft(2, '0');
+        final s = (t % 60).toStringAsFixed(2).padLeft(5, '0');
+        return '$m:$s';
+      }
+      timeFormatted = '${fmt(start)} → ${fmt(end)}';
+    } else {
+      timeFormatted = '—';
+    }
 
     // Determine card border color based on dominant emotion
     Color borderColor;
@@ -734,19 +769,11 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
               ],
             ),
             const Divider(height: 24),
-            _buildEmotionIndicator(
-              'Happy',
-              double.parse(happy) / 100,
-              Colors.green,
-            ),
+            _buildEmotionIndicator('Happy', happyVal, Colors.green),
             const SizedBox(height: 8),
-            _buildEmotionIndicator('Sad', double.parse(sad) / 100, Colors.blue),
+            _buildEmotionIndicator('Sad', sadVal, Colors.blue),
             const SizedBox(height: 8),
-            _buildEmotionIndicator(
-              'Angry',
-              double.parse(angry) / 100,
-              Colors.red,
-            ),
+            _buildEmotionIndicator('Angry', angryVal, Colors.red),
           ],
         ),
       ),
