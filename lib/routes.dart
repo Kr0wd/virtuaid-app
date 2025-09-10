@@ -11,6 +11,7 @@ class AppRouter {
   static const String sessionsPath = '/sessions';
   static const String feedbacksPath = '/feedbacks';
   static const String newFeedbackPath = '/feedbacks/new';
+  static const String accessReportsPath = '/access-reports';
 }
 
 class AppRouteName {
@@ -26,4 +27,5 @@ class AppRouteName {
   static const String sessions = 'sessions';
   static const String feedbacks = 'feedbacks';
   static const String newFeedback = 'newFeedback';
+  static const String accessReports = 'accessReports';
 }

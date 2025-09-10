@@ -18,6 +18,10 @@ import 'package:flutter_starter/sessions/presentation/pages/sessions_page.dart';
 import 'package:flutter_starter/feedbacks/presentation/pages/feedbacks_page.dart';
 import 'package:flutter_starter/feedbacks/presentation/pages/new_feedback_page.dart';
 import 'package:flutter_starter/core/theme/app_theme.dart';
+import 'package:flutter_starter/access_report/presentation/pages/resident_search_page.dart';
+import 'package:flutter_starter/access_report/bloc/access_report_cubit.dart';
+import 'package:flutter_starter/access_report/data/access_report_repository_impl.dart';
+import 'package:flutter_starter/access_report/domain/access_report_repository.dart';
 
 void main() {
   final dioService = DioService();
@@ -95,6 +99,22 @@ class MyApp extends StatelessWidget {
           path: AppRouter.newFeedbackPath,
           name: AppRouteName.newFeedback,
           builder: (context, state) => const NewFeedbackPage(),
+        ),
+        GoRoute(
+          path: AppRouter.accessReportsPath,
+          name: AppRouteName.accessReports,
+          builder: (context, state) {
+            final dioService = RepositoryProvider.of<DioService>(context);
+            return RepositoryProvider<AccessReportRepository>(
+              create: (_) => AccessReportRepositoryImpl(dioService),
+              child: BlocProvider(
+                create: (context) => AccessReportCubit(
+                  RepositoryProvider.of<AccessReportRepository>(context),
+                ),
+                child: const ResidentSearchPage(),
+              ),
+            );
+          },
         ),
       ],
       refreshListenable: StreamToListenable([authBloc.stream]),

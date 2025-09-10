@@ -237,7 +237,7 @@ class DashboardContent extends StatelessWidget {
                     // Adjust aspect ratio to avoid overflow with larger text
                     childAspectRatio: availableWidth < 400 ? 1.2 : 1.1,
                   ),
-                  itemCount: 3,
+                  itemCount: 4,
                   itemBuilder: (context, index) {
                     final items = [
                       {
@@ -257,6 +257,12 @@ class DashboardContent extends StatelessWidget {
                         'icon': Icons.feedback,
                         'color': Colors.purple,
                         'onTap': () => context.push(AppRouter.feedbacksPath),
+                      },
+                      {
+                        'title': 'Access reports',
+                        'icon': Icons.description,
+                        'color': Colors.teal,
+                        'onTap': () => context.push(AppRouter.accessReportsPath),
                       },
                     ];
                     final item = items[index];
