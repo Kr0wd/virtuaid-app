@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'dart:io' show Platform;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
@@ -30,17 +31,27 @@ class DioService {
   }
 
   Dio _createDio() {
+    final resolvedBase = _resolveBaseUrl(ApiConstants.baseUrl);
     return Dio(
       BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
+        baseUrl: resolvedBase,
         headers: ApiConstants.headers,
         connectTimeout: const Duration(milliseconds: ApiConstants.connectTimeout),
         receiveTimeout: const Duration(milliseconds: ApiConstants.receiveTimeout),
-        validateStatus: (status) {
-          return status != null && status < 500;
-        },
+  // Only treat 2xx as success; throw for 4xx/5xx so callers can handle
+  validateStatus: (status) => status != null && status >= 200 && status < 300,
       ),
     );
+  }
+
+  String _resolveBaseUrl(String url) {
+    var u = url;
+    // Map localhost to Android emulator host if needed
+    if ((u.contains('localhost') || u.contains('127.0.0.1')) && Platform.isAndroid) {
+      u = u.replaceFirst('localhost', '10.0.2.2').replaceFirst('127.0.0.1', '10.0.2.2');
+    }
+    if (!u.endsWith('/')) u = '$u/';
+    return u;
   }
 
   void _addInterceptors() {

@@ -31,7 +31,7 @@ class AuthInterceptor extends Interceptor {
   ) async {
     if (err.response?.statusCode == 401) {
       // Check if the request is already trying to refresh the token
-      if (err.requestOptions.path == '/auth/token/refresh/') {
+      if (err.requestOptions.path.endsWith('auth/app/token/refresh/')) {
         // If refresh token request fails, clear tokens and pass the error
         await _tokenService.clearTokens();
         return super.onError(err, handler);
@@ -47,7 +47,7 @@ class AuthInterceptor extends Interceptor {
 
         // Call refresh endpoint to get new access token
         final response = await _dio.post(
-          '/auth/token/refresh/',
+          'auth/app/token/refresh/',
           data: {'refresh': refreshToken},
           options: Options(
             headers: {

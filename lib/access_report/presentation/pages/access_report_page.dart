@@ -9,7 +9,7 @@ import '../util/pdf_opener.dart';
 
 class AccessReportPage extends StatefulWidget {
   final ResidentModel resident;
-  const AccessReportPage({Key? key, required this.resident}) : super(key: key);
+  const AccessReportPage({super.key, required this.resident});
 
   @override
   State<AccessReportPage> createState() => _AccessReportPageState();
@@ -168,7 +168,7 @@ class _AccessReportPageState extends State<AccessReportPage> {
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                 ),
                                 const SizedBox(height: 4),
-                                ButtonBar(
+                                OverflowBar(
                                   alignment: MainAxisAlignment.end,
                                   children: [
                                     OutlinedButton(

@@ -117,6 +117,7 @@ class DashboardContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Debug banner removed
             const Text(
               'Care Home Insights',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -127,21 +128,17 @@ class DashboardContent extends StatelessWidget {
               spacing: 16,
               runSpacing: 16,
               children: [
-                Flexible(
-                  child: _buildInsightCard(
-                    title: 'Residents',
-                    value: data.count.toString(),
-                    icon: Icons.people,
-                    color: Colors.blue,
-                  ),
+                _buildInsightCard(
+                  title: 'Residents',
+                  value: data.count.toString(),
+                  icon: Icons.people,
+                  color: Colors.blue,
                 ),
-                Flexible(
-                  child: _buildInsightCard(
-                    title: 'Active Care Plans',
-                    value: '${data.results.length}',
-                    icon: Icons.healing,
-                    color: Colors.green,
-                  ),
+                _buildInsightCard(
+                  title: 'Active Care Plans',
+                  value: '${data.results.length}',
+                  icon: Icons.healing,
+                  color: Colors.green,
                 ),
               ],
             ),

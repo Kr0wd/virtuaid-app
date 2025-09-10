@@ -12,21 +12,21 @@ class AccessReport {
   });
 
   factory AccessReport.fromJson(Map<String, dynamic> json) {
-    String _string(dynamic v) => v?.toString() ?? '';
-    String _pickUrl(Map<String, dynamic> j) =>
-        _string(j['pdf_url'] ?? j['pdf'] ?? j['url'] ?? j['file'] ?? '');
-    DateTime _pickDate(Map<String, dynamic> j) {
+    String string(dynamic v) => v?.toString() ?? '';
+    String pickUrl(Map<String, dynamic> j) =>
+        string(j['pdf_url'] ?? j['pdf'] ?? j['url'] ?? j['file'] ?? '');
+    DateTime pickDate(Map<String, dynamic> j) {
       final v = j['date'] ?? j['report_month'] ?? j['created_at'] ?? j['created'] ?? j['timestamp'];
       if (v is int) {
         return DateTime.fromMillisecondsSinceEpoch(v);
       }
-      return DateTime.tryParse(_string(v)) ?? DateTime.now();
+      return DateTime.tryParse(string(v)) ?? DateTime.now();
     }
     return AccessReport(
-      id: _string(json['id'] ?? json['pk'] ?? json['uuid'] ?? ''),
-      residentId: _string(json['resident_id'] ?? json['resident'] ?? json['residentId'] ?? ''),
-      pdfUrl: _pickUrl(json),
-      date: _pickDate(json),
+      id: string(json['id'] ?? json['pk'] ?? json['uuid'] ?? ''),
+      residentId: string(json['resident_id'] ?? json['resident'] ?? json['residentId'] ?? ''),
+      pdfUrl: pickUrl(json),
+      date: pickDate(json),
     );
   }
 }

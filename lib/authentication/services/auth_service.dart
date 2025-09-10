@@ -16,15 +16,58 @@ class AuthService {
 
   AuthService(this._dio, this._tokenService);
 
+  // Try a list of endpoint paths and return the first successful POST/GET
+  Future<Response<dynamic>> _postTryPaths(
+    List<String> paths, {
+    Object? data,
+    Options? options,
+  }) async {
+    DioException? lastErr;
+    for (final path in paths) {
+      try {
+        return await _dio.post(path, data: data, options: options);
+      } on DioException catch (e) {
+        lastErr = e;
+        final code = e.response?.statusCode;
+        if (code == 404 || code == 405) continue; // try next variant
+        rethrow; // other errors: surface immediately
+      }
+    }
+    throw lastErr ?? DioException(requestOptions: RequestOptions(path: paths.first));
+  }
+
+  Future<Response<dynamic>> _getTryPaths(
+    List<String> paths, {
+    Options? options,
+  }) async {
+    DioException? lastErr;
+    for (final path in paths) {
+      try {
+        return await _dio.get(path, options: options);
+      } on DioException catch (e) {
+        lastErr = e;
+        final code = e.response?.statusCode;
+        if (code == 404 || code == 405) continue;
+        rethrow;
+      }
+    }
+    throw lastErr ?? DioException(requestOptions: RequestOptions(path: paths.first));
+  }
+
   // Login user - no longer stores access token
   Future<AuthModel> login({
     required String username,
     required String password,
   }) async {
     try {
-      final response = await _dio.post(
-        'auth/app/login/',
-        data: {'username': username, 'password': password},
+      final response = await _postTryPaths(
+        ['auth/app/login/', 'auth/login/'],
+        // Include both keys to support backends expecting either username or email
+        data: {
+          'username': username,
+          'email': username,
+          'password': password,
+        },
       );
 
       final accessToken = response.data['access'];
@@ -37,7 +80,7 @@ class AuthService {
 
       return AuthModel(accessToken: accessToken, user: user);
     } catch (e) {
-      throw _handleError(e, 'Login failed');
+  throw _handleError(e, 'Login failed');
     }
   }
 
@@ -50,8 +93,8 @@ class AuthService {
     required String name,
   }) async {
     try {
-      final response = await _dio.post(
-        'auth/app/register/',
+      final response = await _postTryPaths(
+        ['auth/app/register/', 'auth/register/'],
         data: {
           'username': username,
           'email': email,
@@ -93,8 +136,8 @@ class AuthService {
         throw Exception('Missing Google ID token');
       }
 
-      final response = await _dio.post(
-        '/auth/google/callback/',
+      final response = await _postTryPaths(
+        ['auth/google/callback/', 'auth/google/login/'],
         data: {'id_token': idToken},
       );
 
@@ -116,8 +159,8 @@ class AuthService {
       if (accessToken != null) {
         // Also sign the user out of Google
         _googleSignIn.signOut();
-        await _dio.post(
-          '/auth/app/logout/',
+        await _postTryPaths(
+          ['auth/app/logout/', 'auth/logout/'],
           data: {'refresh': refreshToken},
           options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
         );
@@ -139,8 +182,8 @@ class AuthService {
         throw Exception('No refresh token found');
       }
 
-      final response = await _dio.post(
-        'auth/app/token/refresh/',
+      final response = await _postTryPaths(
+        ['auth/app/token/refresh/', 'auth/token/refresh/'],
         data: {'refresh': refreshToken},
       );
 
@@ -189,8 +232,8 @@ class AuthService {
   // Helper to fetch user information
   Future<UserModel> _fetchUserInfo(String token) async {
     try {
-      final response = await _dio.get(
-        '/auth/app/user/',
+      final response = await _getTryPaths(
+        ['auth/app/user/', 'auth/user/'],
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -206,10 +249,10 @@ class AuthService {
   // Error handling helper
   Exception _handleError(dynamic error, String fallbackMessage) {
     if (error is DioException) {
-      if (error.response != null) {
-        final data = error.response?.data;
-        if (data != null && data is Map) {
-          // Extract error messages
+      final res = error.response;
+      if (res != null) {
+        final data = res.data;
+        if (data is Map) {
           String errorMsg = '';
           data.forEach((key, value) {
             if (value is List) {
@@ -220,10 +263,14 @@ class AuthService {
           });
           return Exception(errorMsg.trim());
         }
-        return Exception(
-          '${error.response?.statusCode}: ${error.response?.statusMessage}',
-        );
+        if (data is String && data.isNotEmpty) {
+          final snippet = data.length > 200 ? '${data.substring(0, 200)}...' : data;
+          return Exception('${res.statusCode}: ${res.statusMessage} - $snippet');
+        }
+        return Exception('${res.statusCode}: ${res.statusMessage}');
       }
+      // Network/handshake/timeouts
+      return Exception('$fallbackMessage: ${error.message}');
     }
     return Exception(fallbackMessage);
   }
