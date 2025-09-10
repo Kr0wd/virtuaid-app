@@ -295,7 +295,7 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
           left: 12,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.withOpacity(0.8),
+              backgroundColor: Colors.red.withValues(alpha: 0.8),
             ),
             onPressed: _cancelMidPlayback,
             child: const Text('Cancel'),

@@ -55,13 +55,13 @@ class _FrameAnalysisPageState extends State<FrameAnalysisPage> {
         _frames = items;
         _isLoading = false;
       });
-      print("Frames data loaded: ${_frames.length} items");
+  // Loaded frames data
     } catch (e) {
       setState(() {
         _isLoading = false;
         _errorMessage = 'Error: $e';
       });
-      print("Error loading frames data: $e");
+  // Error is surfaced to UI via _errorMessage
     }
   }
 

@@ -499,13 +499,13 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
         _timelineData = items;
         _isLoading = false;
       });
-      print("Timeline data loaded: ${_timelineData.length} items");
+  // Loaded timeline data
     } catch (e) {
       setState(() {
         _isLoading = false;
         _errorMessage = 'Error: $e';
       });
-      print("Error loading timeline data: $e");
+  // Error is surfaced to UI via _errorMessage
     }
   }
 
@@ -735,7 +735,7 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: borderColor.withOpacity(0.2),
+                    color: borderColor.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(emotionIcon, color: borderColor),
