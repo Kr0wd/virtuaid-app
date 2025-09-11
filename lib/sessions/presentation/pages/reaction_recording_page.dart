@@ -24,9 +24,9 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
   VideoPlayerController? _videoCtrl;
   VideoPlayerController? _previewCtrl;
 
-  // ignore: unused_field
   File? _stimulusLocalFile;
   File? _recordedFile;
+  String? _lastPreviewFilePath;
 
   int _countdown = 3;
   bool _isCancelling = false;
@@ -158,10 +158,14 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
   }
 
   Future<void> _retake() async {
-    // Reset
+    // Reset video controller
     _videoCtrl?.removeListener(_videoListener);
     await _videoCtrl?.dispose();
-  await _disposePreviewController();
+    // Only dispose preview controller if file path will change
+    if (_recordedFile?.path != _lastPreviewFilePath) {
+      await _disposePreviewController();
+      _lastPreviewFilePath = null;
+    }
     _recordedFile = null;
     _countdown = 3;
     setState(() => state = _RRState.countdown);
@@ -443,13 +447,19 @@ class _ReactionRecordingPageState extends State<ReactionRecordingPage> {
   }
 
   Future<void> _initPreviewController() async {
-    await _disposePreviewController();
     if (_recordedFile == null) return;
+    // Only re-initialize if file path changed
+    if (_lastPreviewFilePath == _recordedFile!.path && _previewCtrl != null) {
+      // Already initialized for this file
+      if (mounted) setState(() {});
+      return;
+    }
+    await _disposePreviewController();
     final ctrl = VideoPlayerController.file(_recordedFile!);
     await ctrl.initialize();
     await ctrl.setLooping(false);
-    // Start paused; let user control playback
     _previewCtrl = ctrl;
+    _lastPreviewFilePath = _recordedFile!.path;
     if (mounted) setState(() {});
   }
 
