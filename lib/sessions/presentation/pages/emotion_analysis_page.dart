@@ -198,7 +198,7 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
   }
 
   Widget _buildFrameCard(dynamic frame, bool isNarrow) {
-    final timestamp = frame['timestamp'].toDouble();
+    final timestamp = (frame['timestamp'] as num).toDouble();
     final minutes = (timestamp ~/ 60).toString().padLeft(2, '0');
     final seconds = (timestamp % 60).toStringAsFixed(2).padLeft(5, '0');
     final timeFormatted = '$minutes:$seconds';
@@ -211,20 +211,22 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
       } catch (_) {}
     }
 
-    final angry = (frame['angry'] * 100).toStringAsFixed(1);
-    final sad = (frame['sad'] * 100).toStringAsFixed(1);
-    final happy = (frame['happy'] * 100).toStringAsFixed(1);
+    // Read all 7 emotions with safe defaults
+    final Map<String, double> emotions = {
+      'angry': (frame['angry'] as num?)?.toDouble() ?? 0.0,
+      'disgust': (frame['disgust'] as num?)?.toDouble() ?? 0.0,
+      'fear': (frame['fear'] as num?)?.toDouble() ?? 0.0,
+      'happy': (frame['happy'] as num?)?.toDouble() ?? 0.0,
+      'neutral': (frame['neutral'] as num?)?.toDouble() ?? 0.0,
+      'sad': (frame['sad'] as num?)?.toDouble() ?? 0.0,
+      'surprised': (frame['surprised'] as num?)?.toDouble() ?? 0.0,
+    };
 
-    String dominantEmotion = frame['dominant_emotion'] ?? '';
+    String dominantEmotion = (frame['dominant_emotion'] as String?) ?? '';
     if (dominantEmotion.isEmpty) {
-      final emotions = {
-        'Happy': double.parse(frame['happy'].toString()),
-        'Sad': double.parse(frame['sad'].toString()),
-        'Angry': double.parse(frame['angry'].toString()),
-      };
-
-      dominantEmotion =
-          emotions.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+      dominantEmotion = emotions.entries
+          .reduce((a, b) => a.value >= b.value ? a : b)
+          .key;
     }
 
     return Padding(
@@ -237,21 +239,17 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
           child:
               isNarrow
                   ? _buildNarrowFrameContent(
-                    timeFormatted,
-                    formattedDate,
-                    angry,
-                    sad,
-                    happy,
-                    dominantEmotion,
-                  )
+                      timeFormatted,
+                      formattedDate,
+                      emotions,
+                      dominantEmotion,
+                    )
                   : _buildWideFrameContent(
-                    timeFormatted,
-                    formattedDate,
-                    angry,
-                    sad,
-                    happy,
-                    dominantEmotion,
-                  ),
+                      timeFormatted,
+                      formattedDate,
+                      emotions,
+                      dominantEmotion,
+                    ),
         ),
       ),
     );
@@ -260,9 +258,7 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
   Widget _buildNarrowFrameContent(
     String timeFormatted,
     String? formattedDate,
-    String angry,
-    String sad,
-    String happy,
+    Map<String, double> emotions,
     String dominantEmotion,
   ) {
     return Column(
@@ -283,15 +279,7 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
           Text('Created: $formattedDate', style: const TextStyle(fontSize: 12)),
         const Divider(),
         const SizedBox(height: 8),
-        _buildEmotionIndicator(
-          'Happy',
-          double.parse(happy) / 100,
-          Colors.green,
-        ),
-        const SizedBox(height: 8),
-        _buildEmotionIndicator('Sad', double.parse(sad) / 100, Colors.blue),
-        const SizedBox(height: 8),
-        _buildEmotionIndicator('Angry', double.parse(angry) / 100, Colors.red),
+  ..._buildAllEmotionIndicators(emotions),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -307,12 +295,10 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
   }
 
   Widget _buildWideFrameContent(
-    String timeFormatted,
-    String? formattedDate,
-    String angry,
-    String sad,
-    String happy,
-    String dominantEmotion,
+  String timeFormatted,
+  String? formattedDate,
+  Map<String, double> emotions,
+  String dominantEmotion,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -347,33 +333,7 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
         ),
         const Divider(),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: _buildEmotionIndicator(
-                'Happy',
-                double.parse(happy) / 100,
-                Colors.green,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildEmotionIndicator(
-                'Sad',
-                double.parse(sad) / 100,
-                Colors.blue,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildEmotionIndicator(
-                'Angry',
-                double.parse(angry) / 100,
-                Colors.red,
-              ),
-            ),
-          ],
-        ),
+        ..._buildAllEmotionIndicators(emotions, wide: true),
       ],
     );
   }
@@ -406,20 +366,7 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
   }
 
   Widget _buildDominantEmotionChip(String emotion) {
-    Color chipColor;
-    switch (emotion.toLowerCase()) {
-      case 'happy':
-        chipColor = Colors.green;
-        break;
-      case 'sad':
-        chipColor = Colors.blue;
-        break;
-      case 'angry':
-        chipColor = Colors.red;
-        break;
-      default:
-        chipColor = Colors.grey;
-    }
+    final chipColor = _emotionColor(emotion);
 
     return Chip(
       label: Text(
@@ -430,6 +377,83 @@ class _FramesAnalysisContentState extends State<_FramesAnalysisContent> {
       padding: const EdgeInsets.all(0),
       visualDensity: VisualDensity.compact,
     );
+  }
+
+  // Build indicators for all 7 emotions
+  List<Widget> _buildAllEmotionIndicators(
+    Map<String, double> emotions, {
+    bool wide = false,
+  }) {
+    const order = [
+      'happy',
+      'neutral',
+      'sad',
+      'angry',
+      'surprised',
+      'fear',
+      'disgust',
+    ];
+    if (wide) {
+      // Render in two rows of 3/4 for better use of width
+      final rows = <Widget>[];
+      final chunks = [order.sublist(0, 3), order.sublist(3)];
+      for (final group in chunks) {
+        rows.add(
+          Row(
+            children: group
+                .map(
+                  (k) => Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: _buildEmotionIndicator(
+                        _labelCase(k),
+                        emotions[k] ?? 0.0,
+                        _emotionColor(k),
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        );
+        rows.add(const SizedBox(height: 8));
+      }
+      if (rows.isNotEmpty) rows.removeLast();
+      return rows;
+    }
+    // Narrow: vertical list
+    return [
+      for (final k in order) ...[
+        _buildEmotionIndicator(_labelCase(k), emotions[k] ?? 0.0, _emotionColor(k)),
+        const SizedBox(height: 8),
+      ],
+    ]..removeLast();
+  }
+
+  Color _emotionColor(String key) {
+    switch (key.toLowerCase()) {
+      case 'angry':
+        return Colors.red;
+      case 'disgust':
+        return const Color(0xFF4CAF50); // Green
+      case 'fear':
+        return Colors.purple;
+      case 'happy':
+        return Colors.green; // Use green for happy bars
+      case 'neutral':
+        return Colors.grey;
+      case 'sad':
+        return Colors.blue;
+      case 'surprised':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _labelCase(String key) {
+    if (key.isEmpty) return key;
+    return key[0].toUpperCase() + key.substring(1);
   }
 }
 
@@ -650,31 +674,19 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
   }
 
   Widget _buildEmotionCard(dynamic timelineItem, int index) {
-    // Get emotion values; handle cases where backend provides only dominant_emotion
-    double happyVal = 0, sadVal = 0, angryVal = 0;
-    if (timelineItem['happy'] != null) {
-      happyVal = (timelineItem['happy'] as num).toDouble();
-    }
-    if (timelineItem['sad'] != null) {
-      sadVal = (timelineItem['sad'] as num).toDouble();
-    }
-    if (timelineItem['angry'] != null) {
-      angryVal = (timelineItem['angry'] as num).toDouble();
-    }
+    // Get emotion values for all 7 emotions
+    final emotions = <String, double>{
+      'angry': (timelineItem['angry'] as num?)?.toDouble() ?? 0.0,
+      'disgust': (timelineItem['disgust'] as num?)?.toDouble() ?? 0.0,
+      'fear': (timelineItem['fear'] as num?)?.toDouble() ?? 0.0,
+      'happy': (timelineItem['happy'] as num?)?.toDouble() ?? 0.0,
+      'neutral': (timelineItem['neutral'] as num?)?.toDouble() ?? 0.0,
+      'sad': (timelineItem['sad'] as num?)?.toDouble() ?? 0.0,
+      'surprised': (timelineItem['surprised'] as num?)?.toDouble() ?? 0.0,
+    };
     final dominantEmotion = _getDominantEmotion(timelineItem);
-    if (happyVal == 0 && sadVal == 0 && angryVal == 0 && dominantEmotion.isNotEmpty) {
-      // Represent dominant emotion as 100% when no split provided
-      switch (dominantEmotion.toLowerCase()) {
-        case 'happy':
-          happyVal = 1.0;
-          break;
-        case 'sad':
-          sadVal = 1.0;
-          break;
-        case 'angry':
-          angryVal = 1.0;
-          break;
-      }
+    if (emotions.values.every((v) => v == 0.0) && dominantEmotion.isNotEmpty) {
+      emotions[dominantEmotion.toLowerCase()] = 1.0;
     }
 
     // Format timestamp; prefer 'timestamp', else show start->end time
@@ -698,25 +710,8 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
     }
 
     // Determine card border color based on dominant emotion
-    Color borderColor;
-    IconData emotionIcon;
-    switch (dominantEmotion.toLowerCase()) {
-      case 'happy':
-        borderColor = Colors.green;
-        emotionIcon = Icons.sentiment_satisfied_alt;
-        break;
-      case 'sad':
-        borderColor = Colors.blue;
-        emotionIcon = Icons.sentiment_dissatisfied;
-        break;
-      case 'angry':
-        borderColor = Colors.red;
-        emotionIcon = Icons.mood_bad;
-        break;
-      default:
-        borderColor = Colors.grey;
-        emotionIcon = Icons.face;
-    }
+  final borderColor = _emotionColor(dominantEmotion);
+  final emotionIcon = _emotionIcon(dominantEmotion);
 
     return Card(
       elevation: 2,
@@ -769,11 +764,7 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
               ],
             ),
             const Divider(height: 24),
-            _buildEmotionIndicator('Happy', happyVal, Colors.green),
-            const SizedBox(height: 8),
-            _buildEmotionIndicator('Sad', sadVal, Colors.blue),
-            const SizedBox(height: 8),
-            _buildEmotionIndicator('Angry', angryVal, Colors.red),
+            ..._buildAllEmotionIndicators(emotions),
           ],
         ),
       ),
@@ -781,18 +772,43 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
   }
 
   String _getDominantEmotion(dynamic dataPoint) {
-    String dominantEmotion = dataPoint['dominant_emotion'] ?? '';
+    String dominantEmotion = (dataPoint['dominant_emotion'] as String?) ?? '';
     if (dominantEmotion.isEmpty) {
-      final emotions = {
-        'Happy': double.parse(dataPoint['happy'].toString()),
-        'Sad': double.parse(dataPoint['sad'].toString()),
-        'Angry': double.parse(dataPoint['angry'].toString()),
+      final emotions = <String, double>{
+        'angry': (dataPoint['angry'] as num?)?.toDouble() ?? 0.0,
+        'disgust': (dataPoint['disgust'] as num?)?.toDouble() ?? 0.0,
+        'fear': (dataPoint['fear'] as num?)?.toDouble() ?? 0.0,
+        'happy': (dataPoint['happy'] as num?)?.toDouble() ?? 0.0,
+        'neutral': (dataPoint['neutral'] as num?)?.toDouble() ?? 0.0,
+        'sad': (dataPoint['sad'] as num?)?.toDouble() ?? 0.0,
+        'surprised': (dataPoint['surprised'] as num?)?.toDouble() ?? 0.0,
       };
-
-      dominantEmotion =
-          emotions.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+      dominantEmotion = emotions.entries
+          .reduce((a, b) => a.value >= b.value ? a : b)
+          .key;
     }
     return dominantEmotion;
+  }
+
+  IconData _emotionIcon(String emotion) {
+    switch (emotion.toLowerCase()) {
+      case 'angry':
+        return Icons.sentiment_very_dissatisfied;
+      case 'disgust':
+        return Icons.sick;
+      case 'fear':
+        return Icons.warning_amber;
+      case 'happy':
+        return Icons.sentiment_very_satisfied;
+      case 'neutral':
+        return Icons.sentiment_neutral;
+      case 'sad':
+        return Icons.sentiment_dissatisfied;
+      case 'surprised':
+        return Icons.help_outline;
+      default:
+        return Icons.face;
+    }
   }
 
   Widget _buildEmotionIndicator(String label, double value, Color color) {
@@ -823,20 +839,7 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
   }
 
   Widget _buildDominantEmotionChip(String emotion) {
-    Color chipColor;
-    switch (emotion.toLowerCase()) {
-      case 'happy':
-        chipColor = Colors.green;
-        break;
-      case 'sad':
-        chipColor = Colors.blue;
-        break;
-      case 'angry':
-        chipColor = Colors.red;
-        break;
-      default:
-        chipColor = Colors.grey;
-    }
+    final chipColor = _emotionColor(emotion);
 
     return Chip(
       label: Text(
@@ -847,6 +850,82 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
       padding: const EdgeInsets.all(0),
       visualDensity: VisualDensity.compact,
     );
+  }
+
+  // Build indicators for all 7 emotions for timeline cards
+  List<Widget> _buildAllEmotionIndicators(
+    Map<String, double> emotions, {
+    bool wide = false,
+  }) {
+    const order = [
+      'happy',
+      'neutral',
+      'sad',
+      'angry',
+      'surprised',
+      'fear',
+      'disgust',
+    ];
+    if (wide) {
+      // Not used in timeline currently, but implemented for parity
+      final rows = <Widget>[];
+      final chunks = [order.sublist(0, 3), order.sublist(3)];
+      for (final group in chunks) {
+        rows.add(
+          Row(
+            children: group
+                .map(
+                  (k) => Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: _buildEmotionIndicator(
+                        _labelCase(k),
+                        emotions[k] ?? 0.0,
+                        _emotionColor(k),
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        );
+        rows.add(const SizedBox(height: 8));
+      }
+      if (rows.isNotEmpty) rows.removeLast();
+      return rows;
+    }
+    return [
+      for (final k in order) ...[
+        _buildEmotionIndicator(_labelCase(k), emotions[k] ?? 0.0, _emotionColor(k)),
+        const SizedBox(height: 8),
+      ],
+    ]..removeLast();
+  }
+
+  Color _emotionColor(String key) {
+    switch (key.toLowerCase()) {
+      case 'angry':
+        return Colors.red;
+      case 'disgust':
+        return const Color(0xFF4CAF50); // Green
+      case 'fear':
+        return Colors.purple;
+      case 'happy':
+        return Colors.green;
+      case 'neutral':
+        return Colors.grey;
+      case 'sad':
+        return Colors.blue;
+      case 'surprised':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _labelCase(String key) {
+    if (key.isEmpty) return key;
+    return key[0].toUpperCase() + key.substring(1);
   }
 }
 

@@ -167,47 +167,32 @@ class _FrameAnalysisPageState extends State<FrameAnalysisPage> {
   }
 
   Widget _buildSimpleFrameCard(dynamic frame, int index) {
-    final timestamp = frame['timestamp'].toDouble();
+    final timestamp = (frame['timestamp'] as num).toDouble();
     final minutes = (timestamp ~/ 60).toString().padLeft(2, '0');
     final seconds = (timestamp % 60).toStringAsFixed(2).padLeft(5, '0');
     final timeFormatted = '$minutes:$seconds';
 
-    final angry = (frame['angry'] * 100).toStringAsFixed(1);
-    final sad = (frame['sad'] * 100).toStringAsFixed(1);
-    final happy = (frame['happy'] * 100).toStringAsFixed(1);
+    // Gather all 7 emotion values with safe defaults
+    final emotions = <String, double>{
+      'angry': (frame['angry'] as num?)?.toDouble() ?? 0.0,
+      'disgust': (frame['disgust'] as num?)?.toDouble() ?? 0.0,
+      'fear': (frame['fear'] as num?)?.toDouble() ?? 0.0,
+      'happy': (frame['happy'] as num?)?.toDouble() ?? 0.0,
+      'neutral': (frame['neutral'] as num?)?.toDouble() ?? 0.0,
+      'sad': (frame['sad'] as num?)?.toDouble() ?? 0.0,
+      'surprised': (frame['surprised'] as num?)?.toDouble() ?? 0.0,
+    };
 
-    String dominantEmotion = frame['dominant_emotion'] ?? '';
+    String dominantEmotion = (frame['dominant_emotion'] as String?) ?? '';
     if (dominantEmotion.isEmpty) {
-      final emotions = {
-        'Happy': double.parse(frame['happy'].toString()),
-        'Sad': double.parse(frame['sad'].toString()),
-        'Angry': double.parse(frame['angry'].toString()),
-      };
-
-      dominantEmotion =
-          emotions.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+      dominantEmotion = emotions.entries
+          .reduce((a, b) => a.value >= b.value ? a : b)
+          .key;
     }
 
     // Determine card border color based on dominant emotion
-    Color borderColor;
-    IconData emotionIcon;
-    switch (dominantEmotion.toLowerCase()) {
-      case 'happy':
-        borderColor = Colors.green;
-        emotionIcon = Icons.sentiment_satisfied_alt;
-        break;
-      case 'sad':
-        borderColor = Colors.blue;
-        emotionIcon = Icons.sentiment_dissatisfied;
-        break;
-      case 'angry':
-        borderColor = Colors.red;
-        emotionIcon = Icons.mood_bad;
-        break;
-      default:
-        borderColor = Colors.grey;
-        emotionIcon = Icons.face;
-    }
+    final borderColor = _emotionColor(dominantEmotion);
+    final emotionIcon = _emotionIcon(dominantEmotion);
 
     // Wrap card with a gesture detector that doesn't interfere with scrolling
     return Card(
@@ -255,22 +240,36 @@ class _FrameAnalysisPageState extends State<FrameAnalysisPage> {
             ),
             const Divider(height: 16),
 
-            // Emotion indicators
-            _buildEmotionRow('Happy', double.parse(happy) / 100, Colors.green),
-            const SizedBox(height: 6),
-            _buildEmotionRow('Sad', double.parse(sad) / 100, Colors.blue),
-            const SizedBox(height: 6),
-            _buildEmotionRow('Angry', double.parse(angry) / 100, Colors.red),
+            // Emotion indicators for all 7 emotions
+            ..._buildAllEmotionIndicators(emotions),
           ],
         ),
       ),
     );
   }
 
+  List<Widget> _buildAllEmotionIndicators(Map<String, double> emotions) {
+    const order = [
+      'happy',
+      'neutral',
+      'sad',
+      'angry',
+      'surprised',
+      'fear',
+      'disgust',
+    ];
+    return [
+      for (final k in order) ...[
+        _buildEmotionRow(_labelCase(k), emotions[k] ?? 0.0, _emotionColor(k)),
+        const SizedBox(height: 6),
+      ]
+    ]..removeLast();
+  }
+
   Widget _buildEmotionRow(String label, double value, Color color) {
     return Row(
       children: [
-        SizedBox(width: 50, child: Text(label, style: TextStyle(fontSize: 12))),
+        SizedBox(width: 70, child: Text(label, style: const TextStyle(fontSize: 12))),
         Expanded(
           child: LinearProgressIndicator(
             value: value,
@@ -282,7 +281,7 @@ class _FrameAnalysisPageState extends State<FrameAnalysisPage> {
         ),
         const SizedBox(width: 8),
         Text(
-          '${(value * 100).toStringAsFixed(0)}%',
+          '${(value * 100).toStringAsFixed(1)}%',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -291,5 +290,52 @@ class _FrameAnalysisPageState extends State<FrameAnalysisPage> {
         ),
       ],
     );
+  }
+
+  Color _emotionColor(String key) {
+    switch (key.toLowerCase()) {
+      case 'angry':
+        return Colors.red;
+      case 'disgust':
+        return const Color(0xFF4CAF50); // Green
+      case 'fear':
+        return Colors.purple;
+      case 'happy':
+        return Colors.green;
+      case 'neutral':
+        return Colors.grey;
+      case 'sad':
+        return Colors.blue;
+      case 'surprised':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _emotionIcon(String emotion) {
+    switch (emotion.toLowerCase()) {
+      case 'angry':
+        return Icons.sentiment_very_dissatisfied;
+      case 'disgust':
+        return Icons.sick;
+      case 'fear':
+        return Icons.warning_amber;
+      case 'happy':
+        return Icons.sentiment_very_satisfied;
+      case 'neutral':
+        return Icons.sentiment_neutral;
+      case 'sad':
+        return Icons.sentiment_dissatisfied;
+      case 'surprised':
+        return Icons.help_outline;
+      default:
+        return Icons.face;
+    }
+  }
+
+  String _labelCase(String key) {
+    if (key.isEmpty) return key;
+    return key[0].toUpperCase() + key.substring(1);
   }
 }

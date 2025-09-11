@@ -14,6 +14,6 @@ class ApiConstants {
   };
 
   // Timeout settings in milliseconds
-  static const int connectTimeout = 30000;
-  static const int receiveTimeout = 30000;
+  static const int connectTimeout = 60000;
+  static const int receiveTimeout = 120000;
 }
