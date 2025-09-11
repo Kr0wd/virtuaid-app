@@ -553,7 +553,7 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
 
   Widget _buildEmotionTimeline() {
     // Sort the timeline data by timestamp/start_time to ensure chronological order
-    int _ts(dynamic item) {
+    int ts(dynamic item) {
       if (item is Map<String, dynamic>) {
         final v = item['timestamp'] ?? item['start_time'] ?? item['start'];
         if (v is num) return v.floor();
@@ -564,7 +564,7 @@ class _TimelineAnalysisContentState extends State<_TimelineAnalysisContent> {
       }
       return 0;
     }
-    _timelineData.sort((a, b) => _ts(a).compareTo(_ts(b)));
+    _timelineData.sort((a, b) => ts(a).compareTo(ts(b)));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
